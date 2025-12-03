@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar Sesión{% endblock %}
+
+{% block content_public %}
+<div class="sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="text-center">
+        <span class="text-4xl">🏛️</span>
+        <h2 class="mt-4 text-2xl font-bold leading-9 tracking-tight text-gray-900">
+            Sistema de Gestión de Crisis IPR
+        </h2>
+        <p class="mt-2 text-sm text-gray-600">GORE Ñuble</p>
+    </div>
+</div>
+
+<div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="bg-white px-6 py-8 shadow sm:rounded-lg sm:px-12">
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-4 rounded-md p-4 {% if category == 'error' %}bg-red-50 text-red-800{% else %}bg-blue-50 text-blue-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form class="space-y-6" method="POST">
+            <div>
+                <label for="username" class="block text-sm font-medium leading-6 text-gray-900">
+                    Usuario
+                </label>
+                <div class="mt-2">
+                    <input id="username" name="username" type="text" autocomplete="username" required
+                           class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3">
+                </div>
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium leading-6 text-gray-900">
+                    Contraseña
+                </label>
+                <div class="mt-2">
+                    <input id="password" name="password" type="password" autocomplete="current-password" required
+                           class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3">
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <input id="remember" name="remember" type="checkbox"
+                           class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                    <label for="remember" class="ml-3 block text-sm leading-6 text-gray-900">
+                        Recordarme
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit"
+                        class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                    Iniciar sesión
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

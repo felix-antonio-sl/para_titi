@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}{{ ipr.codigo_interno }}{% endblock %}
+{% block page_title %}{{ ipr.codigo_interno }} — {{ ipr.nombre[:50] }}{% endblock %}
+
+{% block content %}
+<!-- Header con info básica -->
+<div class="bg-white shadow rounded-lg mb-6">
+    <div class="px-4 py-5 sm:px-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-xl font-bold text-gray-900">{{ ipr.nombre }}</h2>
+                <p class="mt-1 text-sm text-gray-500">
+                    Código: {{ ipr.codigo_interno }}
+                    · Año: {{ ipr.anio_presupuestario }}
+                </p>
+            </div>
+            <div class="flex items-center gap-4">
+                <!-- Acciones -->
+                <a href="{{ url_for('ipr.registrar_avance', id=ipr.id) }}"
+                   class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+                    + Registrar Avance
+                </a>
+                <a href="{{ url_for('ipr.historial', id=ipr.id) }}"
+                   class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                    Ver Historial
+                </a>
+                <!-- Nivel de alerta -->
+                {% if ipr.nivel_alerta == 'CRITICO' %}
+                <span class="px-3 py-1 text-sm rounded-full bg-red-100 text-red-800 font-semibold">🔴 Crítico</span>
+                {% elif ipr.nivel_alerta == 'ATENCION' %}
+                <span class="px-3 py-1 text-sm rounded-full bg-yellow-100 text-yellow-800 font-semibold">🟡 Atención</span>
+                {% else %}
+                <span class="px-3 py-1 text-sm rounded-full bg-green-100 text-green-800 font-semibold">🟢 Normal</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Info detallada -->
+    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+        <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-3">
+            <div>
+                <dt class="text-sm font-medium text-gray-500">División Responsable</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                    {{ ipr.division_responsable.nombre if ipr.division_responsable else 'Sin asignar' }}
+                </dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Responsable</dt>
+                <dd class="mt-1 text-sm text-gray-900" id="responsable-info">
+                    {% include 'ipr/_responsable.html' %}
+                </dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Monto Aprobado</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                    {% if ipr.monto_aprobado %}
+                    ${{ "{:,.0f}".format(ipr.monto_aprobado) }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </dd>
+            </div>
+        </dl>
+    </div>
+</div>
+
+<!-- Tabs de contenido -->
+<div x-data="{ tab: 'problemas' }">
+    <!-- Tab headers -->
+    <div class="border-b border-gray-200 mb-6">
+        <nav class="-mb-px flex space-x-8">
+            <button @click="tab = 'problemas'"
+                    :class="tab === 'problemas' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                Problemas
+                {% if problemas %}
+                <span class="ml-2 px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-800">{{ problemas|length }}</span>
+                {% endif %}
+            </button>
+            <button @click="tab = 'compromisos'"
+                    :class="tab === 'compromisos' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                Compromisos
+                {% if compromisos %}
+                <span class="ml-2 px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800">{{ compromisos|length }}</span>
+                {% endif %}
+            </button>
+            <button @click="tab = 'convenios'"
+                    :class="tab === 'convenios' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                Convenios
+                {% if convenios %}
+                <span class="ml-2 px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800">{{ convenios|length }}</span>
+                {% endif %}
+            </button>
+            <button @click="tab = 'alertas'"
+                    :class="tab === 'alertas' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                Alertas
+                {% if alertas %}
+                <span class="ml-2 px-2 py-0.5 text-xs rounded-full bg-orange-100 text-orange-800">{{ alertas|length }}</span>
+                {% endif %}
+            </button>
+        </nav>
+    </div>
+
+    <!-- Tab: Problemas -->
+    <div x-show="tab === 'problemas'" class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-lg font-medium text-gray-900">Problemas Detectados</h3>
+            <a href="{{ url_for('problemas.nuevo') }}?iniciativa_id={{ ipr.id }}"
+               class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
+                + Registrar Problema
+            </a>
+        </div>
+        <ul class="divide-y divide-gray-200">
+            {% for problema in problemas %}
+            <li class="px-4 py-4 hover:bg-gray-50">
+                <a href="{{ url_for('problemas.ver', id=problema.id) }}" class="block">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="px-2 py-1 text-xs rounded bg-gray-100 text-gray-800">{{ problema.tipo }}</span>
+                            <span class="ml-2 text-sm text-gray-900">{{ problema.descripcion[:80] }}...</span>
+                        </div>
+                        <span class="px-2 py-1 text-xs rounded-full 
+                            {% if problema.estado == 'ABIERTO' %}bg-red-100 text-red-800
+                            {% elif problema.estado == 'EN_GESTION' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-green-100 text-green-800{% endif %}">
+                            {{ problema.estado }}
+                        </span>
+                    </div>
+                    <div class="mt-1 text-xs text-gray-500">
+                        Detectado: {{ problema.detectado_en.strftime('%d/%m/%Y') }} por {{ problema.detectado_por.nombre_completo }}
+                        · Impacto: {{ problema.impacto }}
+                    </div>
+                </a>
+            </li>
+            {% else %}
+            <li class="px-4 py-8 text-center text-gray-500">
+                No hay problemas registrados para esta IPR.
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Tab: Compromisos -->
+    <div x-show="tab === 'compromisos'" x-cloak class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-lg font-medium text-gray-900">Compromisos Asociados</h3>
+            {% if current_user.puede_crear_compromisos() %}
+            <a href="{{ url_for('compromisos.nuevo') }}?iniciativa_id={{ ipr.id }}"
+               class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                + Nuevo Compromiso
+            </a>
+            {% endif %}
+        </div>
+        <ul class="divide-y divide-gray-200">
+            {% for compromiso in compromisos %}
+            <li class="px-4 py-4 hover:bg-gray-50">
+                <a href="{{ url_for('compromisos.ver', id=compromiso.id) }}" class="block">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm text-gray-900">{{ compromiso.descripcion[:80] }}...</p>
+                        <span class="px-2 py-1 text-xs rounded-full {{ compromiso.clase_estado }}">
+                            {{ compromiso.estado }}
+                        </span>
+                    </div>
+                    <div class="mt-1 text-xs text-gray-500">
+                        Responsable: {{ compromiso.responsable.nombre_completo }}
+                        · Vence: {{ compromiso.fecha_limite.strftime('%d/%m/%Y') }}
+                    </div>
+                </a>
+            </li>
+            {% else %}
+            <li class="px-4 py-8 text-center text-gray-500">
+                No hay compromisos asociados a esta IPR.
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Tab: Convenios -->
+    <div x-show="tab === 'convenios'" x-cloak class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Convenios</h3>
+        </div>
+        <ul class="divide-y divide-gray-200">
+            {% for convenio in convenios %}
+            <li class="px-4 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">{{ convenio.numero_resolucion or 'Sin resolución' }}</p>
+                        <p class="text-xs text-gray-500">
+                            Monto: ${{ "{:,.0f}".format(convenio.monto_total) if convenio.monto_total else '-' }}
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">{{ convenio.estado or 'Sin estado' }}</span>
+                        {% if convenio.fecha_termino %}
+                        <p class="mt-1 text-xs text-gray-500">Vence: {{ convenio.fecha_termino.strftime('%d/%m/%Y') }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </li>
+            {% else %}
+            <li class="px-4 py-8 text-center text-gray-500">
+                No hay convenios asociados a esta IPR.
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Tab: Alertas -->
+    <div x-show="tab === 'alertas'" x-cloak class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Alertas Activas</h3>
+        </div>
+        <ul class="divide-y divide-gray-200">
+            {% for alerta in alertas %}
+            <li class="px-4 py-4 {{ alerta.clase_nivel }} border-l-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-semibold">{{ alerta.nivel }}</span>
+                        <p class="text-sm text-gray-900">{{ alerta.mensaje }}</p>
+                        <p class="text-xs text-gray-500">{{ alerta.tipo }} · {{ alerta.generada_en.strftime('%d/%m/%Y %H:%M') }}</p>
+                    </div>
+                    <form method="POST" action="{{ url_for('alertas.atender', id=alerta.id) }}" class="ml-4">
+                        <button type="submit" class="text-xs text-indigo-600 hover:text-indigo-800">
+                            Atender
+                        </button>
+                    </form>
+                </div>
+            </li>
+            {% else %}
+            <li class="px-4 py-8 text-center text-gray-500">
+                No hay alertas activas para esta IPR.
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

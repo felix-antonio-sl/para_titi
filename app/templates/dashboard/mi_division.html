@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Mi División - GORE Ñuble{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="sm:flex sm:items-center mb-6">
+        <div class="sm:flex-auto">
+            <h1 class="text-2xl font-semibold text-gray-900">Mi División: {{ division.nombre if division else 'Sin división asignada' }}</h1>
+            <p class="mt-2 text-sm text-gray-700">
+                Resumen de IPR, compromisos y equipo de la división.
+            </p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+            <dt class="truncate text-sm font-medium text-gray-500">IPR Asignadas</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{ stats.total_ipr }}</dd>
+        </div>
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+            <dt class="truncate text-sm font-medium text-gray-500">Con Problemas</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-red-600">{{ stats.ipr_con_problemas }}</dd>
+        </div>
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+            <dt class="truncate text-sm font-medium text-gray-500">Compromisos Pendientes</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-yellow-600">{{ stats.compromisos_pendientes }}</dd>
+        </div>
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+            <dt class="truncate text-sm font-medium text-gray-500">Vencidos</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-red-600">{{ stats.compromisos_vencidos }}</dd>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <!-- Estado del Equipo -->
+        <div class="overflow-hidden rounded-lg bg-white shadow">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                <h3 class="text-lg font-medium leading-6 text-gray-900">Estado del Equipo</h3>
+                <p class="mt-1 text-sm text-gray-500">Compromisos por responsable</p>
+            </div>
+            <ul role="list" class="divide-y divide-gray-200">
+                {% for miembro in equipo %}
+                <li class="px-4 py-4 sm:px-6 hover:bg-gray-50">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="h-10 w-10 flex-shrink-0 rounded-full bg-indigo-600 flex items-center justify-center">
+                                <span class="text-sm font-medium text-white">{{ miembro.nombre[0] | upper }}</span>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">{{ miembro.nombre }}</p>
+                                <p class="text-sm text-gray-500">{{ miembro.total_compromisos }} compromisos</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            {% if miembro.vencidos > 0 %}
+                            <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                                {{ miembro.vencidos }} vencidos
+                            </span>
+                            {% endif %}
+                            {% if miembro.pendientes > 0 %}
+                            <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+                                {{ miembro.pendientes }} pendientes
+                            </span>
+                            {% endif %}
+                            {% if miembro.vencidos == 0 and miembro.pendientes == 0 %}
+                            <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                                ✓ Al día
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </li>
+                {% else %}
+                <li class="px-4 py-8 text-center text-sm text-gray-500">
+                    No hay miembros del equipo registrados.
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Compromisos Vencidos -->
+        <div class="overflow-hidden rounded-lg bg-white shadow">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg font-medium leading-6 text-gray-900">Compromisos Vencidos</h3>
+                    <p class="mt-1 text-sm text-gray-500">Requieren atención inmediata</p>
+                </div>
+                <a href="{{ url_for('compromisos.lista', vencidos=1) }}" class="text-sm text-indigo-600 hover:text-indigo-500">
+                    Ver todos →
+                </a>
+            </div>
+            <ul role="list" class="divide-y divide-gray-200">
+                {% for comp in compromisos_vencidos %}
+                <li class="px-4 py-4 sm:px-6 hover:bg-gray-50">
+                    <a href="{{ url_for('compromisos.ver', id=comp.id) }}" class="block">
+                        <div class="flex items-center justify-between">
+                            <p class="truncate text-sm font-medium text-indigo-600">{{ comp.descripcion | truncate(50) }}</p>
+                            <span class="ml-2 inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                                {{ (today - comp.fecha_limite).days }} días
+                            </span>
+                        </div>
+                        <div class="mt-2 flex justify-between">
+                            <p class="text-sm text-gray-500">{{ comp.responsable.nombre_completo if comp.responsable else 'Sin asignar' }}</p>
+                            <p class="text-sm text-gray-500">Vencía: {{ comp.fecha_limite.strftime('%d/%m/%Y') }}</p>
+                        </div>
+                    </a>
+                </li>
+                {% else %}
+                <li class="px-4 py-8 text-center text-sm text-gray-500">
+                    No hay compromisos vencidos. ¡Excelente!
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- IPR con Problemas -->
+        <div class="overflow-hidden rounded-lg bg-white shadow lg:col-span-2">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg font-medium leading-6 text-gray-900">IPR con Problemas</h3>
+                    <p class="mt-1 text-sm text-gray-500">Iniciativas que requieren atención</p>
+                </div>
+                <a href="{{ url_for('ipr.lista') }}" class="text-sm text-indigo-600 hover:text-indigo-500">
+                    Ver todas →
+                </a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-300">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Iniciativa</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Responsable</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Problemas</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Alerta</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 bg-white">
+                        {% for ipr in ipr_con_problemas %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-4 pl-4 pr-3 sm:pl-6">
+                                <a href="{{ url_for('ipr.ficha', id=ipr.id) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    {{ ipr.nombre | truncate(40) }}
+                                </a>
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                {{ ipr.responsable.nombre_completo if ipr.responsable else 'Sin asignar' }}
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm">
+                                <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                                    {{ ipr.problemas | selectattr('estado', 'in', ['ABIERTO', 'EN_GESTION']) | list | length }}
+                                </span>
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm">
+                                {% if ipr.nivel_alerta == 'CRITICO' %}
+                                <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">Crítico</span>
+                                {% elif ipr.nivel_alerta == 'ALTO' %}
+                                <span class="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800">Alto</span>
+                                {% elif ipr.nivel_alerta == 'ATENCION' %}
+                                <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">Atención</span>
+                                {% else %}
+                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">Normal</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-8 text-center text-sm text-gray-500">
+                                No hay IPR con problemas abiertos.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

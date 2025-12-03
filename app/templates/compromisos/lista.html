@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Compromisos{% endblock %}
+{% block page_title %}Compromisos Operativos{% endblock %}
+
+{% block content %}
+<!-- Filtros -->
+<div class="bg-white shadow rounded-lg mb-6">
+    <div class="px-4 py-5 sm:p-6">
+        <form method="GET" class="flex flex-wrap gap-4 items-end">
+            <!-- Estado -->
+            <div>
+                <label for="estado" class="block text-sm font-medium text-gray-700">Estado</label>
+                <select name="estado" id="estado"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <option value="">Activos</option>
+                    <option value="PENDIENTE" {% if filtros.estado == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+                    <option value="EN_PROGRESO" {% if filtros.estado == 'EN_PROGRESO' %}selected{% endif %}>En Progreso</option>
+                    <option value="COMPLETADO" {% if filtros.estado == 'COMPLETADO' %}selected{% endif %}>Completado</option>
+                    <option value="VERIFICADO" {% if filtros.estado == 'VERIFICADO' %}selected{% endif %}>Verificado</option>
+                </select>
+            </div>
+
+            <!-- Checkboxes -->
+            <div class="flex items-center gap-4">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" name="vencidos" value="1"
+                           {% if filtros.vencidos %}checked{% endif %}
+                           class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                    <span class="ml-2 text-sm text-gray-600">Solo vencidos</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="checkbox" name="mios" value="1"
+                           {% if filtros.mios %}checked{% endif %}
+                           class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                    <span class="ml-2 text-sm text-gray-600">Solo míos</span>
+                </label>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-2">
+                <button type="submit"
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                    Filtrar
+                </button>
+                <a href="{{ url_for('compromisos.lista') }}"
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Limpiar
+                </a>
+            </div>
+
+            <!-- Nuevo compromiso -->
+            {% if current_user.puede_crear_compromisos() %}
+            <div class="ml-auto">
+                <a href="{{ url_for('compromisos.nuevo') }}"
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700">
+                    + Nuevo Compromiso
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Lista de compromisos -->
+<div class="bg-white shadow rounded-lg overflow-hidden">
+    <ul class="divide-y divide-gray-200">
+        {% for compromiso in compromisos %}
+        <li class="hover:bg-gray-50">
+            <a href="{{ url_for('compromisos.ver', id=compromiso.id) }}" class="block px-4 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-700">
+                                {{ compromiso.tipo.nombre if compromiso.tipo else 'Sin tipo' }}
+                            </span>
+                            <span class="{{ compromiso.clase_prioridad }} text-xs">
+                                {{ compromiso.prioridad }}
+                            </span>
+                        </div>
+                        <p class="mt-1 text-sm font-medium text-gray-900 truncate">
+                            {{ compromiso.descripcion }}
+                        </p>
+                        <div class="mt-1 flex items-center gap-4 text-xs text-gray-500">
+                            <span>Responsable: {{ compromiso.responsable.nombre_completo }}</span>
+                            {% if compromiso.iniciativa %}
+                            <span>IPR: {{ compromiso.iniciativa.codigo_interno }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="ml-4 flex flex-col items-end">
+                        <span class="px-2 py-1 text-xs rounded-full {{ compromiso.clase_estado }}">
+                            {{ compromiso.estado }}
+                        </span>
+                        <span class="mt-1 text-sm {% if compromiso.esta_vencido() %}text-red-600 font-semibold{% else %}text-gray-500{% endif %}">
+                            {{ compromiso.fecha_limite.strftime('%d/%m/%Y') }}
+                            {% if compromiso.dias_restantes() is not none %}
+                                {% if compromiso.dias_restantes() < 0 %}
+                                    ({{ -compromiso.dias_restantes() }}d vencido)
+                                {% elif compromiso.dias_restantes() == 0 %}
+                                    (hoy)
+                                {% elif compromiso.dias_restantes() <= 3 %}
+                                    ({{ compromiso.dias_restantes() }}d)
+                                {% endif %}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </a>
+        </li>
+        {% else %}
+        <li class="px-4 py-12 text-center text-gray-500">
+            No se encontraron compromisos con los filtros seleccionados.
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Paginación -->
+    {% if paginacion.pages > 1 %}
+    <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200">
+        <div class="flex-1 flex justify-between sm:hidden">
+            {% if paginacion.has_prev %}
+            <a href="{{ url_for('compromisos.lista', page=paginacion.prev_num, **filtros) }}"
+               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Anterior
+            </a>
+            {% endif %}
+            {% if paginacion.has_next %}
+            <a href="{{ url_for('compromisos.lista', page=paginacion.next_num, **filtros) }}"
+               class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Siguiente
+            </a>
+            {% endif %}
+        </div>
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <p class="text-sm text-gray-700">
+                Página <span class="font-medium">{{ paginacion.page }}</span> de
+                <span class="font-medium">{{ paginacion.pages }}</span>
+            </p>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                {% if paginacion.has_prev %}
+                <a href="{{ url_for('compromisos.lista', page=paginacion.prev_num, **filtros) }}"
+                   class="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    ← Anterior
+                </a>
+                {% endif %}
+                {% if paginacion.has_next %}
+                <a href="{{ url_for('compromisos.lista', page=paginacion.next_num, **filtros) }}"
+                   class="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Siguiente →
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

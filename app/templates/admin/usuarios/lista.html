@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios - Administración{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="sm:flex sm:items-center">
+        <div class="sm:flex-auto">
+            <h1 class="text-2xl font-semibold text-gray-900">Usuarios</h1>
+            <p class="mt-2 text-sm text-gray-700">
+                Gestión de usuarios del sistema de crisis IPR.
+            </p>
+        </div>
+        <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+            <a href="{{ url_for('admin.usuarios_nuevo') }}"
+               class="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+                + Nuevo Usuario
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <form method="get" class="mt-6 bg-white shadow rounded-lg p-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+            <div>
+                <label for="buscar" class="block text-sm font-medium text-gray-700">Buscar</label>
+                <input type="text" name="buscar" id="buscar" value="{{ filtros.buscar }}"
+                       placeholder="Nombre, RUT o username"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="rol" class="block text-sm font-medium text-gray-700">Rol</label>
+                <select name="rol" id="rol" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <option value="">Todos los roles</option>
+                    {% for valor, nombre in roles %}
+                    <option value="{{ valor }}" {% if filtros.rol == valor %}selected{% endif %}>{{ nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="activo" class="block text-sm font-medium text-gray-700">Estado</label>
+                <select name="activo" id="activo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <option value="">Todos</option>
+                    <option value="1" {% if filtros.activo == '1' %}selected{% endif %}>Activos</option>
+                    <option value="0" {% if filtros.activo == '0' %}selected{% endif %}>Inactivos</option>
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="w-full rounded-md bg-gray-100 px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-200">
+                    Filtrar
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Tabla -->
+    <div class="mt-6 flow-root">
+        <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-300">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Usuario</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">RUT</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Rol</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Estado</th>
+                                <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                                    <span class="sr-only">Acciones</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white">
+                            {% for usuario in usuarios %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="whitespace-nowrap py-4 pl-4 pr-3 sm:pl-6">
+                                    <div class="flex items-center">
+                                        <div class="h-10 w-10 flex-shrink-0 rounded-full bg-indigo-600 flex items-center justify-center">
+                                            <span class="text-sm font-medium text-white">
+                                                {{ usuario.nombre_completo[0] | upper }}
+                                            </span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="font-medium text-gray-900">{{ usuario.nombre_completo }}</div>
+                                            <div class="text-gray-500">{{ usuario.username }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                    {{ usuario.persona.rut if usuario.persona else '-' }}
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm">
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                                        {% if usuario.rol_crisis == 'ADMIN_SISTEMA' %}bg-purple-100 text-purple-800
+                                        {% elif usuario.rol_crisis == 'ADMIN_REGIONAL' %}bg-blue-100 text-blue-800
+                                        {% elif usuario.rol_crisis == 'JEFE_DIVISION' %}bg-green-100 text-green-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ usuario.rol_crisis | replace('_', ' ') | title if usuario.rol_crisis else 'Sin rol' }}
+                                    </span>
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm">
+                                    {% if usuario.activo %}
+                                    <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                                        Activo
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                                        Inactivo
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                    <a href="{{ url_for('admin.usuarios_editar', id=usuario.id) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                        Editar
+                                    </a>
+                                    <form action="{{ url_for('admin.usuarios_toggle_activo', id=usuario.id) }}" method="POST" class="inline">
+                                        <button type="submit" class="text-gray-600 hover:text-gray-900">
+                                            {{ 'Desactivar' if usuario.activo else 'Activar' }}
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center text-sm text-gray-500">
+                                    No se encontraron usuarios.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paginación -->
+    {% if paginacion.pages > 1 %}
+    <nav class="mt-6 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6" aria-label="Pagination">
+        <div class="hidden sm:block">
+            <p class="text-sm text-gray-700">
+                Mostrando <span class="font-medium">{{ paginacion.page }}</span> de 
+                <span class="font-medium">{{ paginacion.pages }}</span> páginas
+                ({{ paginacion.total }} usuarios)
+            </p>
+        </div>
+        <div class="flex flex-1 justify-between sm:justify-end">
+            {% if paginacion.has_prev %}
+            <a href="{{ url_for('admin.usuarios_lista', page=paginacion.prev_num, **filtros) }}"
+               class="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                Anterior
+            </a>
+            {% endif %}
+            {% if paginacion.has_next %}
+            <a href="{{ url_for('admin.usuarios_lista', page=paginacion.next_num, **filtros) }}"
+               class="relative ml-3 inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                Siguiente
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

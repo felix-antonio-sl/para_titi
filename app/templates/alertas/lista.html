@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Alertas{% endblock %}
+{% block page_title %}Alertas del Sistema{% endblock %}
+
+{% block content %}
+<!-- Filtros -->
+<div class="bg-white shadow rounded-lg mb-6">
+    <div class="px-4 py-5 sm:p-6">
+        <form method="GET" class="flex flex-wrap gap-4 items-end">
+            <div>
+                <label for="nivel" class="block text-sm font-medium text-gray-700">Nivel</label>
+                <select name="nivel" id="nivel"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <option value="">Todos</option>
+                    <option value="CRITICO" {% if filtros.nivel == 'CRITICO' %}selected{% endif %}>Crítico</option>
+                    <option value="ALTO" {% if filtros.nivel == 'ALTO' %}selected{% endif %}>Alto</option>
+                    <option value="ATENCION" {% if filtros.nivel == 'ATENCION' %}selected{% endif %}>Atención</option>
+                    <option value="INFO" {% if filtros.nivel == 'INFO' %}selected{% endif %}>Info</option>
+                </select>
+            </div>
+            <div class="flex items-center">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" name="activas" value="1"
+                           {% if filtros.activas %}checked{% endif %}
+                           class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                    <span class="ml-2 text-sm text-gray-600">Solo activas</span>
+                </label>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit"
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                    Filtrar
+                </button>
+                <a href="{{ url_for('alertas.lista') }}"
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de alertas -->
+<div class="bg-white shadow rounded-lg overflow-hidden">
+    <ul class="divide-y divide-gray-200">
+        {% for alerta in alertas %}
+        <li class="px-4 py-4 {{ alerta.clase_nivel }} border-l-4 {% if not alerta.activa %}opacity-60{% endif %}">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 text-xs font-semibold rounded 
+                            {% if alerta.nivel == 'CRITICO' %}bg-red-600 text-white
+                            {% elif alerta.nivel == 'ALTO' %}bg-orange-500 text-white
+                            {% elif alerta.nivel == 'ATENCION' %}bg-yellow-500 text-white
+                            {% else %}bg-blue-500 text-white{% endif %}">
+                            {{ alerta.nivel }}
+                        </span>
+                        <span class="text-xs text-gray-600">{{ alerta.tipo }}</span>
+                    </div>
+                    <p class="mt-1 text-sm text-gray-900">{{ alerta.mensaje }}</p>
+                    <div class="mt-1 text-xs text-gray-500">
+                        IPR: 
+                        <a href="{{ url_for('ipr.ficha', id=alerta.iniciativa_id) }}" class="text-indigo-600 hover:underline">
+                            {{ alerta.iniciativa.codigo_interno if alerta.iniciativa else '-' }}
+                        </a>
+                        · {{ alerta.generada_en.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                    {% if alerta.atendida_por %}
+                    <div class="mt-1 text-xs text-green-600">
+                        ✓ Atendida por {{ alerta.atendida_por.nombre_completo }} · {{ alerta.atendida_en.strftime('%d/%m/%Y') }}
+                        {% if alerta.accion_tomada %}: {{ alerta.accion_tomada }}{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% if alerta.activa %}
+                <div class="ml-4">
+                    <form method="POST" action="{{ url_for('alertas.atender', id=alerta.id) }}"
+                          hx-post="{{ url_for('alertas.atender', id=alerta.id) }}"
+                          hx-target="closest li"
+                          hx-swap="outerHTML">
+                        <input type="hidden" name="accion_tomada" value="Atendida">
+                        <button type="submit"
+                                class="inline-flex items-center px-3 py-1 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            Atender
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </li>
+        {% else %}
+        <li class="px-4 py-12 text-center text-gray-500">
+            No hay alertas {% if filtros.activas %}activas{% endif %}.
+        </li>
+        {% endfor %}
+    </ul>
+
+    {% if paginacion.pages > 1 %}
+    <div class="bg-white px-4 py-3 border-t border-gray-200 flex justify-between">
+        <p class="text-sm text-gray-700">Página {{ paginacion.page }} de {{ paginacion.pages }}</p>
+        <nav class="flex gap-2">
+            {% if paginacion.has_prev %}
+            <a href="{{ url_for('alertas.lista', page=paginacion.prev_num, **filtros) }}"
+               class="px-3 py-1 border rounded text-sm hover:bg-gray-50">← Anterior</a>
+            {% endif %}
+            {% if paginacion.has_next %}
+            <a href="{{ url_for('alertas.lista', page=paginacion.next_num, **filtros) }}"
+               class="px-3 py-1 border rounded text-sm hover:bg-gray-50">Siguiente →</a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+# =============================================================================
+# docker-compose.yml — Sistema de Gestión de Crisis IPR
+# =============================================================================
+#
+# Uso:
+#   docker compose up -d              # Levantar
+#   docker compose logs -f app        # Ver logs
+#   docker compose down                # Parar
+#
+# Requiere: gore_db corriendo (desde data-gore)
+#   cd /path/to/data-gore && docker compose up -d
+#
+
+services:
+  # ---------------------------------------------------------------------------
+  # Aplicación Flask
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: para_titi_app
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://gore:gore_dev_2025@gore_db:5432/gore_nuble
+      - SECRET_KEY=${SECRET_KEY:-cambiar-en-produccion}
+      - FLASK_ENV=${FLASK_ENV:-production}
+    ports:
+      - "5000:5000"
+    networks:
+      - gore_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # Nginx (solo en producción)
+  # ---------------------------------------------------------------------------
+  nginx:
+    image: nginx:alpine
+    container_name: para_titi_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - gore_network
+    depends_on:
+      - app
+    profiles:
+      - production
+
+# =============================================================================
+# Red compartida con data-gore
+# =============================================================================
+networks:
+  gore_network:
+    external: true
+    name: data-gore_default

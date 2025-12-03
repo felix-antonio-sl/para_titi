@@ -1,0 +1,32 @@
+# =============================================================================
+# docker-compose.dev.yml — Desarrollo con hot reload
+# =============================================================================
+#
+# Uso:
+#   docker compose -f docker-compose.dev.yml up
+#   docker compose -f docker-compose.dev.yml exec app flask shell
+#
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: para_titi_dev
+    environment:
+      - DATABASE_URL=postgresql://gore:gore_dev_2025@gore_db:5432/gore_nuble
+      - SECRET_KEY=dev-secret-key
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./app:/home/app/app
+      - ./wsgi.py:/home/app/wsgi.py
+    networks:
+      - gore_network
+
+networks:
+  gore_network:
+    external: true
+    name: data-gore_default

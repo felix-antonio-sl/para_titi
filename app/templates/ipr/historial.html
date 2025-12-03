@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Historial - {{ ipr.nombre }}{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="sm:flex sm:items-center mb-6">
+        <div class="sm:flex-auto">
+            <a href="{{ url_for('ipr.ficha', id=ipr.id) }}" class="text-sm text-indigo-600 hover:text-indigo-500">
+                ← Volver a ficha IPR
+            </a>
+            <h1 class="mt-2 text-2xl font-semibold text-gray-900">Historial de Avances</h1>
+            <p class="mt-1 text-sm text-gray-600">{{ ipr.nombre }}</p>
+        </div>
+        <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+            <a href="{{ url_for('ipr.registrar_avance', id=ipr.id) }}"
+               class="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+                + Registrar Avance
+            </a>
+        </div>
+    </div>
+
+    <!-- Resumen actual -->
+    <div class="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-3">
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+            <dt class="truncate text-sm font-medium text-gray-500">Avance Físico</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{ ipr.avance_fisico or 0 }}%</dd>
+            <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-indigo-600 h-2 rounded-full" style="--progress: {{ ipr.avance_fisico or 0 }}%; width: var(--progress)"></div>
+            </div>
+        </div>
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+            <dt class="truncate text-sm font-medium text-gray-500">Avance Financiero</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{ ipr.avance_financiero or 0 }}%</dd>
+            <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-green-600 h-2 rounded-full" style="--progress: {{ ipr.avance_financiero or 0 }}%; width: var(--progress)"></div>
+            </div>
+        </div>
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+            <dt class="truncate text-sm font-medium text-gray-500">Total Informes</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{ informes | length }}</dd>
+        </div>
+    </div>
+
+    <!-- Lista de informes -->
+    <div class="bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">Informes de Avance</h3>
+        </div>
+        
+        {% if informes %}
+        <ul role="list" class="divide-y divide-gray-200">
+            {% for item in informes %}
+            <li class="px-4 py-5 sm:px-6 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center space-x-3">
+                            <span class="inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
+                                #{{ item.informe.numero }}
+                            </span>
+                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                                {{ item.informe.tipo }}
+                            </span>
+                        </div>
+                        <p class="mt-2 text-sm text-gray-900">
+                            <strong>Convenio:</strong> {{ item.convenio.numero_resolucion or 'Sin número' }}
+                        </p>
+                        <p class="mt-1 text-sm text-gray-500">
+                            Período: {{ item.informe.periodo_desde.strftime('%d/%m/%Y') }} - {{ item.informe.periodo_hasta.strftime('%d/%m/%Y') }}
+                        </p>
+                        {% if item.informe.resumen %}
+                        <p class="mt-2 text-sm text-gray-600">{{ item.informe.resumen | truncate(200) }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="ml-4 flex-shrink-0 text-right">
+                        <p class="text-sm text-gray-500">
+                            {{ item.informe.fecha_emision.strftime('%d/%m/%Y') if item.informe.fecha_emision else 'Sin fecha' }}
+                        </p>
+                        {% if item.informe.elaborador %}
+                        <p class="text-xs text-gray-400">
+                            {{ item.informe.elaborador.nombre_completo }}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="px-4 py-12 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">Sin informes de avance</h3>
+            <p class="mt-1 text-sm text-gray-500">Aún no se han registrado informes de avance para esta IPR.</p>
+            <div class="mt-6">
+                <a href="{{ url_for('ipr.registrar_avance', id=ipr.id) }}"
+                   class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+                    + Registrar primer avance
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

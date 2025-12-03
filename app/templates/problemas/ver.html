@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Problema{% endblock %}
+{% block page_title %}Detalle de Problema{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="px-2 py-1 text-xs rounded bg-gray-100 text-gray-700">{{ problema.tipo }}</span>
+                    <span class="px-2 py-1 text-xs rounded bg-orange-100 text-orange-700">{{ problema.impacto }}</span>
+                </div>
+                <span class="px-3 py-1 text-sm rounded-full 
+                    {% if problema.estado == 'ABIERTO' %}bg-red-100 text-red-800
+                    {% elif problema.estado == 'EN_GESTION' %}bg-yellow-100 text-yellow-800
+                    {% elif problema.estado == 'RESUELTO' %}bg-green-100 text-green-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ problema.estado }}
+                </span>
+            </div>
+        </div>
+
+        <div class="px-4 py-5 sm:px-6 space-y-6">
+            <!-- Descripción -->
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Descripción del Problema</h3>
+                <p class="mt-1 text-gray-900 whitespace-pre-wrap">{{ problema.descripcion }}</p>
+            </div>
+
+            {% if problema.impacto_descripcion %}
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Descripción del Impacto</h3>
+                <p class="mt-1 text-gray-900">{{ problema.impacto_descripcion }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Info -->
+            <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">IPR</dt>
+                    <dd class="mt-1">
+                        <a href="{{ url_for('ipr.ficha', id=problema.iniciativa.id) }}" class="text-indigo-600 hover:text-indigo-800">
+                            {{ problema.iniciativa.codigo_interno }} — {{ problema.iniciativa.nombre[:40] }}...
+                        </a>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Detectado por</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        {{ problema.detectado_por.nombre_completo }}
+                        <span class="text-gray-500">· {{ problema.detectado_en.strftime('%d/%m/%Y %H:%M') }}</span>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Días abierto</dt>
+                    <dd class="mt-1 text-sm {% if problema.dias_abierto() > 7 %}text-red-600 font-semibold{% else %}text-gray-900{% endif %}">
+                        {{ problema.dias_abierto() }} días
+                    </dd>
+                </div>
+                {% if problema.convenio %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Convenio afectado</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ problema.convenio.codigo or problema.convenio.numero_resolucion }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+
+            {% if problema.solucion_propuesta %}
+            <div class="p-4 bg-blue-50 rounded-lg">
+                <h3 class="text-sm font-medium text-blue-700">Solución Propuesta</h3>
+                <p class="mt-1 text-blue-900">{{ problema.solucion_propuesta }}</p>
+            </div>
+            {% endif %}
+
+            {% if problema.solucion_aplicada %}
+            <div class="p-4 bg-green-50 rounded-lg">
+                <h3 class="text-sm font-medium text-green-700">Solución Aplicada</h3>
+                <p class="mt-1 text-green-900">{{ problema.solucion_aplicada }}</p>
+                {% if problema.resuelto_por %}
+                <p class="mt-2 text-xs text-green-600">
+                    Resuelto por {{ problema.resuelto_por.nombre_completo }} · {{ problema.resuelto_en.strftime('%d/%m/%Y') }}
+                </p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Compromisos asociados -->
+        {% if compromisos %}
+        <div class="px-4 py-5 sm:px-6 border-t border-gray-200">
+            <h3 class="text-sm font-medium text-gray-900 mb-3">Compromisos para resolver este problema</h3>
+            <ul class="divide-y divide-gray-200 border rounded-lg">
+                {% for c in compromisos %}
+                <li class="px-3 py-2 hover:bg-gray-50">
+                    <a href="{{ url_for('compromisos.ver', id=c.id) }}" class="flex justify-between items-center">
+                        <span class="text-sm text-gray-900">{{ c.descripcion[:50] }}...</span>
+                        <span class="px-2 py-0.5 text-xs rounded-full {{ c.clase_estado }}">{{ c.estado }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Acciones -->
+        <div class="px-4 py-4 sm:px-6 bg-gray-50 border-t border-gray-200 flex flex-wrap gap-3">
+            {% if problema.esta_abierto() and current_user.puede_verificar_compromisos() %}
+            <button type="button"
+                    onclick="document.getElementById('modal-resolver').classList.remove('hidden')"
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700">
+                ✓ Marcar Resuelto
+            </button>
+            <button type="button"
+                    onclick="document.getElementById('modal-cerrar').classList.remove('hidden')"
+                    class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Cerrar sin resolver
+            </button>
+            {% endif %}
+
+            {% if problema.esta_abierto() and current_user.puede_crear_compromisos() %}
+            <a href="{{ url_for('compromisos.nuevo') }}?problema_id={{ problema.id }}&iniciativa_id={{ problema.iniciativa_id }}"
+               class="inline-flex items-center px-4 py-2 border border-indigo-300 text-sm font-medium rounded-md text-indigo-700 bg-white hover:bg-indigo-50">
+                + Crear Compromiso
+            </a>
+            {% endif %}
+
+            <a href="{{ url_for('problemas.lista') }}"
+               class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                ← Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Resolver -->
+<div id="modal-resolver" class="hidden fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75" onclick="this.parentElement.parentElement.classList.add('hidden')"></div>
+        <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Resolver Problema</h3>
+            <form method="POST" action="{{ url_for('problemas.resolver', id=problema.id) }}">
+                <div class="mb-4">
+                    <label for="solucion_aplicada" class="block text-sm font-medium text-gray-700">Solución aplicada *</label>
+                    <textarea name="solucion_aplicada" id="solucion_aplicada" rows="4" required
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                              placeholder="Describa cómo se resolvió el problema..."></textarea>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="this.closest('#modal-resolver').classList.add('hidden')"
+                            class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                            class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
+                        Resolver
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cerrar -->
+<div id="modal-cerrar" class="hidden fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75" onclick="this.parentElement.parentElement.classList.add('hidden')"></div>
+        <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Cerrar sin resolver</h3>
+            <form method="POST" action="{{ url_for('problemas.cerrar_sin_resolver', id=problema.id) }}">
+                <div class="mb-4">
+                    <label for="motivo" class="block text-sm font-medium text-gray-700">Motivo</label>
+                    <textarea name="motivo" id="motivo" rows="3"
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                              placeholder="Explique por qué se cierra sin resolver..."></textarea>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="this.closest('#modal-cerrar').classList.add('hidden')"
+                            class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                            class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700">
+                        Cerrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

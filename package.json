@@ -1,0 +1,12 @@
+{
+  "name": "para-titi-assets",
+  "version": "1.0.0",
+  "description": "Assets build for Sistema de Gestión de Crisis IPR",
+  "scripts": {
+    "build:css": "tailwindcss -i ./app/static/src/input.css -o ./app/static/dist/output.css --minify",
+    "watch:css": "tailwindcss -i ./app/static/src/input.css -o ./app/static/dist/output.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}

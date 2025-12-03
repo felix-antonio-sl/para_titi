@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Compromiso{% endblock %}
+{% block page_title %}Crear Nuevo Compromiso{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white shadow rounded-lg">
+        <form method="POST" class="px-4 py-5 sm:p-6 space-y-6">
+            <!-- Tipo -->
+            <div>
+                <label for="tipo_id" class="block text-sm font-medium text-gray-700">Tipo de Compromiso *</label>
+                <select name="tipo_id" id="tipo_id" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <option value="">Seleccione...</option>
+                    {% for tipo in tipos %}
+                    <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Descripción -->
+            <div>
+                <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción *</label>
+                <textarea name="descripcion" id="descripcion" rows="3" required
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          placeholder="Describa el compromiso..."></textarea>
+            </div>
+
+            <!-- Responsable -->
+            <div>
+                <label for="responsable_id" class="block text-sm font-medium text-gray-700">Responsable *</label>
+                <select name="responsable_id" id="responsable_id" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <option value="">Seleccione...</option>
+                    {% for usuario in usuarios %}
+                    <option value="{{ usuario.id }}">{{ usuario.nombre_completo }} ({{ usuario.email }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <!-- Fecha límite -->
+                <div>
+                    <label for="fecha_limite" class="block text-sm font-medium text-gray-700">Fecha Límite *</label>
+                    <input type="date" name="fecha_limite" id="fecha_limite" required
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                </div>
+
+                <!-- Prioridad -->
+                <div>
+                    <label for="prioridad" class="block text-sm font-medium text-gray-700">Prioridad</label>
+                    <select name="prioridad" id="prioridad"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <option value="BAJA">Baja</option>
+                        <option value="MEDIA" selected>Media</option>
+                        <option value="ALTA">Alta</option>
+                        <option value="URGENTE">Urgente</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- IPR (opcional) -->
+            <div>
+                <label for="iniciativa_id" class="block text-sm font-medium text-gray-700">IPR Vinculada (opcional)</label>
+                <select name="iniciativa_id" id="iniciativa_id"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <option value="">Sin vincular a IPR</option>
+                    {% for ipr in iniciativas %}
+                    <option value="{{ ipr.id }}" {% if request.args.get('iniciativa_id') == ipr.id|string %}selected{% endif %}>
+                        {{ ipr.codigo_interno }} — {{ ipr.nombre[:50] }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <a href="{{ url_for('compromisos.lista') }}"
+                   class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Cancelar
+                </a>
+                <button type="submit"
+                        class="px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                    Crear Compromiso
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

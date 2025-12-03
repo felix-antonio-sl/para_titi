@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Reuniones no disponibles{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-2xl">
+    <div class="rounded-lg bg-white shadow px-4 py-5 sm:p-6">
+      <h1 class="text-xl font-semibold text-gray-900 mb-2">Sistema de Reuniones no disponible</h1>
+      <p class="text-sm text-gray-600 mb-4">
+        El módulo de reuniones requiere tablas específicas en la base de datos
+        (<code>gore_instancias.reunion_crisis</code> y asociadas) que aún no están
+        presentes en el modelo v4.1 cargado en este entorno.
+      </p>
+      <p class="text-sm text-gray-600 mb-4">
+        Mientras no se habiliten estas tablas en <strong>data-gore / modelo v4.x</strong>,
+        la aplicación desactiva el sistema de reuniones para evitar errores.
+      </p>
+      <p class="text-sm text-gray-600 mb-6">
+        Puedes seguir utilizando el resto de funcionalidades: IPR, problemas,
+        compromisos, alertas, dashboards y administración de usuarios/divisiones.
+      </p>
+      <div class="flex justify-end">
+        <a href="{{ url_for('main.dashboard') }}"
+           class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+          Volver al Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
