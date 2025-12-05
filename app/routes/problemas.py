@@ -7,20 +7,21 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from app.extensions import db
 from app.models import ProblemaIPR, Iniciativa, Convenio
+from app.services.problemas_service import ProblemasService
 
-problemas_bp = Blueprint('problemas', __name__)
+problemas_bp = Blueprint("problemas", __name__)
 
 
-@problemas_bp.route('/')
+@problemas_bp.route("/")
 @login_required
 def lista():
     """Lista de problemas con filtros."""
-    page = request.args.get('page', 1, type=int)
+    page = request.args.get("page", 1, type=int)
 
     # Filtros
-    estado = request.args.get('estado')
-    tipo = request.args.get('tipo')
-    impacto = request.args.get('impacto')
+    estado = request.args.get("estado")
+    tipo = request.args.get("tipo")
+    impacto = request.args.get("impacto")
 
     # Query base
     query = ProblemaIPR.query
@@ -30,7 +31,7 @@ def lista():
         query = query.filter(ProblemaIPR.estado == estado)
     else:
         # Por defecto, solo abiertos
-        query = query.filter(ProblemaIPR.estado.in_(['ABIERTO', 'EN_GESTION']))
+        query = query.filter(ProblemaIPR.estado.in_(["ABIERTO", "EN_GESTION"]))
 
     if tipo:
         query = query.filter(ProblemaIPR.tipo == tipo)
@@ -43,76 +44,78 @@ def lista():
 
     paginacion = query.paginate(page=page, per_page=20, error_out=False)
 
-    return render_template('problemas/lista.html',
-                           problemas=paginacion.items,
-                           paginacion=paginacion,
-                           filtros={
-                               'estado': estado,
-                               'tipo': tipo,
-                               'impacto': impacto
-                           })
+    return render_template(
+        "problemas/lista.html",
+        problemas=paginacion.items,
+        paginacion=paginacion,
+        filtros={"estado": estado, "tipo": tipo, "impacto": impacto},
+    )
 
 
-@problemas_bp.route('/nuevo', methods=['GET', 'POST'])
+@problemas_bp.route("/nuevo", methods=["GET", "POST"])
 @login_required
 def nuevo():
     """Registrar nuevo problema."""
-    if request.method == 'POST':
-        iniciativa_id = request.form.get('iniciativa_id')
-        convenio_id = request.form.get('convenio_id') or None
-        tipo = request.form.get('tipo')
-        impacto = request.form.get('impacto')
-        descripcion = request.form.get('descripcion', '').strip()
-        impacto_descripcion = request.form.get('impacto_descripcion', '').strip()
-        solucion_propuesta = request.form.get('solucion_propuesta', '').strip()
+    if request.method == "POST":
+        iniciativa_id = request.form.get("iniciativa_id")
+        convenio_id = request.form.get("convenio_id") or None
+        tipo = request.form.get("tipo")
+        impacto = request.form.get("impacto")
+        descripcion = request.form.get("descripcion", "").strip()
+        impacto_descripcion = request.form.get("impacto_descripcion", "").strip()
+        solucion_propuesta = request.form.get("solucion_propuesta", "").strip()
 
         if not all([iniciativa_id, tipo, impacto, descripcion]):
-            flash('Todos los campos obligatorios deben completarse.', 'error')
+            flash("Todos los campos obligatorios deben completarse.", "error")
         else:
-            from uuid import UUID
-            problema = ProblemaIPR(
-                iniciativa_id=UUID(iniciativa_id),
-                convenio_id=UUID(convenio_id) if convenio_id else None,
-                tipo=tipo,
-                impacto=impacto,
-                descripcion=descripcion,
-                impacto_descripcion=impacto_descripcion or None,
-                solucion_propuesta=solucion_propuesta or None,
-                detectado_por_id=current_user.id,
-                estado='ABIERTO'
-            )
-            db.session.add(problema)
-            db.session.commit()
-
-            flash('Problema registrado correctamente.', 'success')
-            return redirect(url_for('problemas.ver', id=problema.id))
+            try:
+                problema = ProblemasService.crear_problema(
+                    request.form.to_dict(), current_user.id
+                )
+                flash("Problema registrado correctamente.", "success")
+                return redirect(url_for("problemas.ver", id=problema.id))
+            except ValueError as e:
+                flash(str(e), "error")
 
     # Datos para formulario
     iniciativas = Iniciativa.query.order_by(Iniciativa.nombre).limit(100).all()
 
     # Tipos y impactos (desde ENUMs de v4.1)
-    tipos = ['TECNICO', 'FINANCIERO', 'ADMINISTRATIVO', 'LEGAL', 'COORDINACION', 'EXTERNO']
-    impactos = ['BLOQUEA_PAGO', 'RETRASA_OBRA', 'RETRASA_CONVENIO', 'RIESGO_RENDICION', 'AFECTA_IMAGEN', 'OTRO']
+    tipos = [
+        "TECNICO",
+        "FINANCIERO",
+        "ADMINISTRATIVO",
+        "LEGAL",
+        "COORDINACION",
+        "EXTERNO",
+    ]
+    impactos = [
+        "BLOQUEA_PAGO",
+        "RETRASA_OBRA",
+        "RETRASA_CONVENIO",
+        "RIESGO_RENDICION",
+        "AFECTA_IMAGEN",
+        "OTRO",
+    ]
 
-    return render_template('problemas/nuevo.html',
-                           iniciativas=iniciativas,
-                           tipos=tipos,
-                           impactos=impactos)
+    return render_template(
+        "problemas/nuevo.html", iniciativas=iniciativas, tipos=tipos, impactos=impactos
+    )
 
 
-@problemas_bp.route('/<uuid:id>')
+@problemas_bp.route("/<uuid:id>")
 @login_required
 def ver(id):
     """Ver detalle de un problema."""
     problema = ProblemaIPR.query.get_or_404(id)
     compromisos = problema.compromisos.all()
 
-    return render_template('problemas/ver.html',
-                           problema=problema,
-                           compromisos=compromisos)
+    return render_template(
+        "problemas/ver.html", problema=problema, compromisos=compromisos
+    )
 
 
-@problemas_bp.route('/<uuid:id>/resolver', methods=['POST'])
+@problemas_bp.route("/<uuid:id>/resolver", methods=["POST"])
 @login_required
 def resolver(id):
     """Marcar problema como resuelto."""
@@ -120,24 +123,18 @@ def resolver(id):
         abort(403)
 
     problema = ProblemaIPR.query.get_or_404(id)
-    solucion_aplicada = request.form.get('solucion_aplicada', '').strip()
+    solucion_aplicada = request.form.get("solucion_aplicada", "").strip()
 
-    if not solucion_aplicada:
-        flash('Debe describir la solución aplicada.', 'error')
-        return redirect(url_for('problemas.ver', id=id))
+    try:
+        ProblemasService.resolver_problema(id, solucion_aplicada, current_user.id)
+        flash("Problema marcado como resuelto.", "success")
+    except ValueError as e:
+        flash(str(e), "error")
 
-    problema.estado = 'RESUELTO'
-    problema.solucion_aplicada = solucion_aplicada
-    problema.resuelto_por_id = current_user.id
-    problema.resuelto_en = datetime.utcnow()
-
-    db.session.commit()
-
-    flash('Problema marcado como resuelto.', 'success')
-    return redirect(url_for('problemas.ver', id=id))
+    return redirect(url_for("problemas.ver", id=id))
 
 
-@problemas_bp.route('/<uuid:id>/cerrar', methods=['POST'])
+@problemas_bp.route("/<uuid:id>/cerrar", methods=["POST"])
 @login_required
 def cerrar_sin_resolver(id):
     """Cerrar problema sin resolver."""
@@ -145,14 +142,12 @@ def cerrar_sin_resolver(id):
         abort(403)
 
     problema = ProblemaIPR.query.get_or_404(id)
-    motivo = request.form.get('motivo', '').strip()
+    motivo = request.form.get("motivo", "").strip()
 
-    problema.estado = 'CERRADO_SIN_RESOLVER'
-    problema.solucion_aplicada = f'Cerrado sin resolver: {motivo}' if motivo else 'Cerrado sin resolver'
-    problema.resuelto_por_id = current_user.id
-    problema.resuelto_en = datetime.utcnow()
+    try:
+        ProblemasService.cerrar_problema(id, motivo, current_user.id)
+        flash("Problema cerrado.", "info")
+    except ValueError as e:
+        flash(str(e), "error")
 
-    db.session.commit()
-
-    flash('Problema cerrado.', 'info')
-    return redirect(url_for('problemas.ver', id=id))
+    return redirect(url_for("problemas.ver", id=id))
