@@ -22,9 +22,9 @@ Sistema web para la gestión de crisis en Iniciativas de Inversión Pública Reg
 
 El proyecto sigue una arquitectura por capas para garantizar mantenibilidad y testabilidad:
 
-1.  **Routes (`app/routes/`)**: Manejan las peticiones HTTP, validan entrada básica y delegan a los servicios.
-2.  **Services (`app/services/`)**: Contienen toda la lógica de negocio (ej: `IPRService`, `CompromisosService`, `ProblemasService`). Manejan transacciones y reglas de dominio.
-3.  **Models (`app/models/`)**: Definiciones SQLAlchemy mapeadas al esquema de base de datos.
+1. **Routes (`app/routes/`)**: Manejan las peticiones HTTP, validan entrada básica y delegan a los servicios.
+2. **Services (`app/services/`)**: Contienen toda la lógica de negocio (ej: `IPRService`, `CompromisosService`, `ProblemasService`). Manejan transacciones y reglas de dominio.
+3. **Models (`app/models/`)**: Definiciones SQLAlchemy mapeadas al esquema de base de datos.
 
 ## 🚀 Inicio Rápido
 
@@ -35,22 +35,26 @@ El proyecto sigue una arquitectura por capas para garantizar mantenibilidad y te
 
 ### Instalación y Ejecución
 
-1.  **Clonar el repositorio**:
+1. **Clonar el repositorio**:
+
     ```bash
     git clone <url-repo>
     cd para_titi
     ```
 
-2.  **Configurar entorno**:
+2. **Configurar entorno**:
+
     ```bash
     cp .env.example .env
     ```
 
-3.  **Levantar servicios (Desarrollo)**:
+3. **Levantar servicios (Desarrollo)**:
     Esto levantará la aplicación y una base de datos de pruebas (`db_test`) automáticamente.
+
     ```bash
     docker compose -f docker-compose.dev.yml up --build
     ```
+
     La aplicación estará disponible en: [http://localhost:5001](http://localhost:5001)
 
 ## 🧪 Estrategia de Testing (Real DB)
@@ -66,10 +70,11 @@ docker compose -f docker-compose.dev.yml run --rm app sh -c "pip install pytest-
 ```
 
 **Que sucede al correr los tests:**
-1.  Se conecta al contenedor `db_test`.
-2.  `tests/conftest.py` crea los esquemas necesarios (`gore_financiero`, `gore_ejecucion`, etc.).
-3.  Se crean las tablas y se limpian después de cada test.
-4.  Se validan Constraints reales (Foreign Keys, Not Null, etc.).
+
+1. Se conecta al contenedor `db_test`.
+2. `tests/conftest.py` crea los esquemas necesarios (`gore_financiero`, `gore_ejecucion`, etc.).
+3. Se crean las tablas y se limpian después de cada test.
+4. Se validan Constraints reales (Foreign Keys, Not Null, etc.).
 
 ## 📁 Estructura del Proyecto
 

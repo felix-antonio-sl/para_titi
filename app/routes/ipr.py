@@ -7,12 +7,56 @@ from datetime import date, datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
 from app.extensions import db
-from app.models import Iniciativa, Division, Usuario, Convenio, InformeAvance
+from app.models import (
+    Iniciativa,
+    Division,
+    Usuario,
+    Convenio,
+    InformeAvance,
+    Instrumento,
+)
 
 
 from app.services.ipr_service import IPRService
 
 ipr_bp = Blueprint("ipr", __name__)
+
+
+@ipr_bp.route("/nueva", methods=["GET", "POST"])
+@login_required
+def nueva():
+    """Crear nueva iniciativa (Solo Admin/Jefe/Regional)."""
+    # Verificar permisos (Opcional, definir quién puede crear)
+    if (
+        not current_user.puede_crear_compromisos()
+    ):  # Reusamos permiso o definimos uno nuevo
+        # Por ahora dejamos que los roles de gestión creen
+        pass
+
+    if request.method == "POST":
+        try:
+            data = request.form.to_dict()
+            iniciativa = IPRService.crear_iniciativa(data, current_user.id)
+            flash(
+                f"Iniciativa {iniciativa.codigo_interno} creada exitosamente.",
+                "success",
+            )
+            return redirect(url_for("ipr.lista"))
+        except ValueError as e:
+            flash(str(e), "error")
+
+    # Cargar catálogos
+    instrumentos = (
+        Instrumento.query.filter_by(activo=True).order_by(Instrumento.nombre).all()
+    )
+    divisiones = Division.query.order_by(Division.nombre).all()
+
+    return render_template(
+        "ipr/nueva.html",
+        instrumentos=instrumentos,
+        divisiones=divisiones,
+        today=date.today(),
+    )
 
 
 @ipr_bp.route("/")

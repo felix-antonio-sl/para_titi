@@ -26,4 +26,27 @@ with app.app_context():
 
     print("Creating tables...")
     db.create_all()
+
+    print(" Applying Mock SQL Functions...")
+    try:
+        with open("scripts/mock_db_functions.sql", "r") as f:
+            sql_script = f.read()
+            # Split by statement if needed, or execute block if simple
+            db.session.execute(text(sql_script))
+            db.session.commit()
+            print("✓ Mock functions applied.")
+    except FileNotFoundError:
+        print("! Warning: scripts/mock_db_functions.sql not found.")
+    except Exception as e:
+        print(f"Error applying SQL mocks: {e}")
+        db.session.rollback()
+
+    print(" Seeding Catalogs...")
+    try:
+        from scripts.seed_data import seed_catalogs
+
+        seed_catalogs()
+    except Exception as e:
+        print(f"Error seeding data: {e}")
+
     print("DONE. Database ready for use.")

@@ -23,13 +23,14 @@ class TestCompromisosService:
     def setup_data(self, db_session):
         """Fixture crea dependencias complejas."""
         # 1. Persona y Usuario
+        unique_suffix = str(uuid4())[:4]
         persona_id = uuid4()
         persona = Persona(
             id=persona_id,
-            rut="11111111-1",
+            rut=f"99{unique_suffix}-K",
             nombres="Jefe",
             apellido_paterno="Division",
-            email="jefe@gore.cl",
+            email=f"jefe.{unique_suffix}@gore.cl",
         )
         db_session.add(persona)
 

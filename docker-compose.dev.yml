@@ -31,7 +31,7 @@ services:
     #   - gore_network
 
   db_test:
-    image: postgis/postgis:14-3.3
+    image: postgis/postgis:16-3.4
     environment:
       POSTGRES_USER: gore
       POSTGRES_PASSWORD: test_password

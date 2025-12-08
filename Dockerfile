@@ -6,12 +6,12 @@
 # ----------------------------------------------------------------------------
 # STAGE 1: Build de assets (Tailwind CSS)
 # ----------------------------------------------------------------------------
-FROM node:20-alpine AS assets-builder
+FROM node:22-alpine AS assets-builder
 
 WORKDIR /build
 
 COPY package.json package-lock.json* ./
-RUN npm ci --silent
+RUN npm install --silent
 
 COPY tailwind.config.js ./
 COPY app/static/src/ ./app/static/src/
@@ -22,7 +22,7 @@ RUN npm run build:css
 # ----------------------------------------------------------------------------
 # STAGE 2: Aplicación Python
 # ----------------------------------------------------------------------------
-FROM python:3.11-slim AS runtime
+FROM python:3.12-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

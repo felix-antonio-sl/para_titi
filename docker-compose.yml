@@ -22,11 +22,14 @@ services:
     container_name: para_titi_app
     restart: unless-stopped
     environment:
-      - DATABASE_URL=postgresql://gore:gore_dev_2025@gore_db:5432/gore_nuble
-      - SECRET_KEY=${SECRET_KEY:-cambiar-en-produccion}
-      - FLASK_ENV=${FLASK_ENV:-production}
-    ports:
-      - "5000:5000"
+      - DATABASE_URL=postgresql://gore:gore_production_pwd@db:5432/gore_nuble
+      - SECRET_KEY=${SECRET_KEY:-cambiar-en-produccion-por-favor}
+      - FLASK_ENV=production
+    volumes:
+      - static_volume:/home/app/app/static
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
       - gore_network
     healthcheck:
@@ -37,7 +40,28 @@ services:
       start_period: 10s
 
   # ---------------------------------------------------------------------------
-  # Nginx (solo en producción)
+  # Base de Datos (Standalone)
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: para_titi_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gore
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-gore_production_pwd}
+      POSTGRES_DB: gore_nuble
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - gore_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gore -d gore_nuble"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Nginx
   # ---------------------------------------------------------------------------
   nginx:
     image: nginx:alpine
@@ -47,17 +71,16 @@ services:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_volume:/home/app/app/static:ro
     networks:
       - gore_network
     depends_on:
       - app
-    profiles:
-      - production
 
-# =============================================================================
-# Red compartida con data-gore
-# =============================================================================
+volumes:
+  postgres_data:
+  static_volume:
+
 networks:
   gore_network:
-    external: true
-    name: data-gore_default
+    name: para_titi_network

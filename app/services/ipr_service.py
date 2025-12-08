@@ -3,6 +3,7 @@
 # =============================================================================
 
 from datetime import date, datetime
+import uuid
 from uuid import UUID
 from app.extensions import db
 from app.models import Iniciativa, InformeAvance
@@ -10,6 +11,54 @@ from app.models import Iniciativa, InformeAvance
 
 class IPRService:
     """Servicio para la gestión de Iniciativas de Inversión (IPR)."""
+
+    @staticmethod
+    def crear_iniciativa(data: dict, creador_id: UUID = None) -> Iniciativa:
+        """
+        Crea una nueva iniciativa de inversión.
+        """
+        try:
+            # Validar campos obligatorios
+            required = [
+                "codigo_interno",
+                "nombre",
+                "instrumento_id",
+                "anio_presupuestario",
+            ]
+            for field in required:
+                if not data.get(field):
+                    raise ValueError(f"El campo {field} es obligatorio")
+
+            # Crear instancia
+            iniciativa = Iniciativa(
+                id=(
+                    UUID(data.get("id")) if data.get("id") else uuid.uuid4()
+                ),  # Generar si no viene
+                codigo_interno=data["codigo_interno"].strip(),
+                nombre=data["nombre"].strip(),
+                instrumento_id=UUID(data["instrumento_id"]),
+                anio_presupuestario=int(data["anio_presupuestario"]),
+                monto_solicitado=int(data.get("monto_solicitado", 0)),
+                descripcion=data.get("descripcion", ""),
+                # Defaults
+                nivel_alerta="BAJO",
+                tiene_problemas_abiertos=False,
+                estado_fsm_id=uuid.uuid4(),  # Provisional hasta implementar FSM real
+            )
+
+            # Asignar división si viene
+            if data.get("division_responsable_id"):
+                iniciativa.division_responsable_id = UUID(
+                    data["division_responsable_id"]
+                )
+
+            db.session.add(iniciativa)
+            db.session.commit()
+            return iniciativa
+
+        except (ValueError, TypeError) as e:
+            db.session.rollback()
+            raise ValueError(f"Error al crear iniciativa: {str(e)}")
 
     @staticmethod
     def asignar_responsable(ipr_id: UUID, responsable_id: UUID) -> Iniciativa:
