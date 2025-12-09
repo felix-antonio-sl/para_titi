@@ -1,0 +1,70 @@
+services:
+  # ---------------------------------------------------------------------------
+  # Aplicación Flask
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://gore:${DB_PASSWORD}@db:5432/gore_nuble
+      - SECRET_KEY=${SECRET_KEY}
+      - FLASK_ENV=production
+    volumes:
+      - static_volume:/home/app/app/static
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - gore_network
+
+  # ---------------------------------------------------------------------------
+  # Base de Datos (Standalone)
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gore
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: gore_nuble
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - gore_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gore -d gore_nuble"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Nginx (Expuesto vía Traefik en Dokploy)
+  # ---------------------------------------------------------------------------
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_volume:/home/app/app/static:ro
+    networks:
+      - gore_network
+      - dokploy-network
+    depends_on:
+      - app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.para-titi.rule=Host(`${DOMAIN_NAME}`)"
+      - "traefik.http.routers.para-titi.entrypoints=websecure"
+      - "traefik.http.routers.para-titi.tls.certresolver=letsencrypt"
+      - "traefik.http.services.para-titi.loadbalancer.server.port=80"
+
+volumes:
+  postgres_data:
+  static_volume:
+
+networks:
+  gore_network:
+  dokploy-network:
+    external: true
