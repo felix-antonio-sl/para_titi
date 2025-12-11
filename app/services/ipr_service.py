@@ -30,10 +30,14 @@ class IPRService:
                     raise ValueError(f"El campo {field} es obligatorio")
 
             # Crear instancia
+            try:
+                ipr_id = UUID(data.get("id")) if data.get("id") else uuid.uuid4()
+            except (ValueError, TypeError):
+                # Fallback o re-raise limpio
+                raise ValueError(f"ID inválido: {data.get('id')}")
+
             iniciativa = Iniciativa(
-                id=(
-                    UUID(data.get("id")) if data.get("id") else uuid.uuid4()
-                ),  # Generar si no viene
+                id=ipr_id,
                 codigo_interno=data["codigo_interno"].strip(),
                 nombre=data["nombre"].strip(),
                 instrumento_id=UUID(data["instrumento_id"]),

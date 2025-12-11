@@ -12,15 +12,21 @@ class Config:
     """Configuración base."""
 
     # Flask
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-cambiar')
+    SECRET_KEY = os.environ.get("SECRET_KEY")
+    if not SECRET_KEY:
+        if os.environ.get("FLASK_ENV") == "production":
+            raise ValueError("No SECRET_KEY set for production configuration")
+        SECRET_KEY = "dev-secret-key-cambiar"
 
     # SQLAlchemy — Conexión a v4.1
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'postgresql://gore:gore_dev_2025@localhost:5432/gore_nuble'
+    SQLALCHEMY_DATABASE_URI = (
+        os.environ.get("DATABASE_URL")
+        or "postgresql://gore:gore_dev_2025@localhost:5432/gore_nuble"
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_pre_ping': True,
-        'pool_recycle': 300,
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
     }
 
     # Paginación

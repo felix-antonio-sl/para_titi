@@ -1,87 +1,117 @@
 <!DOCTYPE html>
 <html lang="es" class="h-full bg-gray-50">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Gestión de Crisis IPR{% endblock %} — GORE Ñuble</title>
-    
-    <!-- Tailwind CSS (CDN para desarrollo, compilado en producción) -->
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}Gestión de Crisis IPR{% endblock %} — GORE Ñuble
+    </title>
+
+    <!-- Tailwind CSS -->
+    {% if config['ENV'] == 'production' %}
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='dist/output.css') }}"
+    />
+    {% else %}
     <script src="https://cdn.tailwindcss.com"></script>
-    
+    {% endif %}
+
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@2.0.0"></script>
-    
+
     <!-- Alpine.js -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
+    <script
+      defer
+      src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <style>
-        [x-cloak] { display: none !important; }
+      [x-cloak] {
+        display: none !important;
+      }
     </style>
-    
+
     {% block extra_head %}{% endblock %}
-</head>
-<body class="h-full" x-data="{ sidebarOpen: false }">
+  </head>
+  <body class="h-full" x-data="{ sidebarOpen: false }">
     {% if current_user.is_authenticated %}
     <div class="min-h-full">
-        <!-- Sidebar móvil -->
-        <div x-show="sidebarOpen" class="relative z-50 lg:hidden" x-cloak>
-            <div x-show="sidebarOpen" class="fixed inset-0 bg-gray-900/80" @click="sidebarOpen = false"></div>
-            <div class="fixed inset-0 flex">
-                <div x-show="sidebarOpen" class="relative mr-16 flex w-full max-w-xs flex-1">
-                    {% include 'components/sidebar.html' %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Sidebar desktop -->
-        <div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
+      <!-- Sidebar móvil -->
+      <div x-show="sidebarOpen" class="relative z-50 lg:hidden" x-cloak>
+        <div
+          x-show="sidebarOpen"
+          class="fixed inset-0 bg-gray-900/80"
+          @click="sidebarOpen = false"
+        ></div>
+        <div class="fixed inset-0 flex">
+          <div
+            x-show="sidebarOpen"
+            class="relative mr-16 flex w-full max-w-xs flex-1"
+          >
             {% include 'components/sidebar.html' %}
+          </div>
         </div>
+      </div>
 
-        <!-- Contenido principal -->
-        <div class="lg:pl-64">
-            <!-- Navbar -->
-            {% include 'components/navbar.html' %}
+      <!-- Sidebar desktop -->
+      <div
+        class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col"
+      >
+        {% include 'components/sidebar.html' %}
+      </div>
 
-            <!-- Main content -->
-            <main class="py-6">
-                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <!-- Flash messages -->
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            <div class="mb-4 space-y-2">
-                                {% for category, message in messages %}
-                                    <div class="rounded-md p-4 {% if category == 'error' %}bg-red-50 text-red-800{% elif category == 'success' %}bg-green-50 text-green-800{% elif category == 'warning' %}bg-yellow-50 text-yellow-800{% else %}bg-blue-50 text-blue-800{% endif %}"
-                                         x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)">
-                                        <div class="flex">
-                                            <div class="flex-1">{{ message }}</div>
-                                            <button @click="show = false" class="ml-3">
-                                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    {% endwith %}
+      <!-- Contenido principal -->
+      <div class="lg:pl-64">
+        <!-- Navbar -->
+        {% include 'components/navbar.html' %}
 
-                    {% block content %}{% endblock %}
+        <!-- Main content -->
+        <main class="py-6">
+          <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <!-- Flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %} {%
+            if messages %}
+            <div class="mb-4 space-y-2">
+              {% for category, message in messages %}
+              <div
+                class="rounded-md p-4 {% if category == 'error' %}bg-red-50 text-red-800{% elif category == 'success' %}bg-green-50 text-green-800{% elif category == 'warning' %}bg-yellow-50 text-yellow-800{% else %}bg-blue-50 text-blue-800{% endif %}"
+                x-data="{ show: true }"
+                x-show="show"
+                x-init="setTimeout(() => show = false, 5000)"
+              >
+                <div class="flex">
+                  <div class="flex-1">{{ message }}</div>
+                  <button @click="show = false" class="ml-3">
+                    <svg
+                      class="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </button>
                 </div>
-            </main>
-        </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %} {% endwith %} {% block content %}{% endblock %}
+          </div>
+        </main>
+      </div>
     </div>
     {% else %}
     <!-- Sin autenticación -->
     <div class="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        {% block content_public %}{% endblock %}
+      {% block content_public %}{% endblock %}
     </div>
-    {% endif %}
-
-    {% block extra_scripts %}{% endblock %}
-</body>
+    {% endif %} {% block extra_scripts %}{% endblock %}
+  </body>
 </html>
