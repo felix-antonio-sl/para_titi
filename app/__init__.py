@@ -4,7 +4,7 @@
 
 from flask import Flask
 from app.config import Config
-from app.extensions import db, login_manager
+from app.extensions import db, login_manager, csrf
 
 
 def create_app(config_class=Config):
@@ -15,9 +15,11 @@ def create_app(config_class=Config):
     # Inicializar extensiones
     db.init_app(app)
     login_manager.init_app(app)
+    csrf.init_app(app)
 
     # Registrar comandos CLI
     from app import cli
+
     cli.init_app(app)
 
     # Registrar blueprints
@@ -33,19 +35,19 @@ def create_app(config_class=Config):
     from app.routes.reuniones import reuniones_bp
 
     app.register_blueprint(main_bp)
-    app.register_blueprint(auth_bp, url_prefix='/auth')
-    app.register_blueprint(ipr_bp, url_prefix='/ipr')
-    app.register_blueprint(compromisos_bp, url_prefix='/compromisos')
-    app.register_blueprint(problemas_bp, url_prefix='/problemas')
-    app.register_blueprint(alertas_bp, url_prefix='/alertas')
-    app.register_blueprint(ejecutivo_bp, url_prefix='/ejecutivo')
-    app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(ipr_bp, url_prefix="/ipr")
+    app.register_blueprint(compromisos_bp, url_prefix="/compromisos")
+    app.register_blueprint(problemas_bp, url_prefix="/problemas")
+    app.register_blueprint(alertas_bp, url_prefix="/alertas")
+    app.register_blueprint(ejecutivo_bp, url_prefix="/ejecutivo")
+    app.register_blueprint(admin_bp, url_prefix="/admin")
     app.register_blueprint(division_bp)
-    app.register_blueprint(reuniones_bp, url_prefix='/reuniones')
+    app.register_blueprint(reuniones_bp, url_prefix="/reuniones")
 
     # Health check endpoint
-    @app.route('/health')
+    @app.route("/health")
     def health():
-        return {'status': 'ok'}, 200
+        return {"status": "ok"}, 200
 
     return app

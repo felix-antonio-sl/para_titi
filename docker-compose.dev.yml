@@ -1,10 +1,12 @@
 # =============================================================================
-# docker-compose.dev.yml — Desarrollo con hot reload
+# docker-compose.dev.yml — Desarrollo con hot reload (conectado a gore_db)
 # =============================================================================
 #
 # Uso:
 #   docker compose -f docker-compose.dev.yml up
 #   docker compose -f docker-compose.dev.yml exec app flask shell
+#
+# Requiere: gore_db corriendo (desde gore_os o data-gore)
 #
 
 services:
@@ -16,34 +18,18 @@ services:
     environment:
       - FLASK_APP=wsgi.py
       - FLASK_DEBUG=1
-      - DATABASE_URL=postgresql://gore:test_password@db_test:5432/gore_nuble_test
+      - DATABASE_URL=postgresql://gore:gore_secret@gore_db:5432/gore_nuble
       - SECRET_KEY=dev_key
     ports:
       - "5001:5000"
-    depends_on:
-      db_test:
-        condition: service_healthy
     volumes:
       - ./app:/home/app/app
       - ./wsgi.py:/home/app/wsgi.py
       - ./tests:/home/app/tests:ro
-    # networks:
-    #   - gore_network
+    networks:
+      - gore_network
 
-  db_test:
-    image: postgis/postgis:16-3.4
-    environment:
-      POSTGRES_USER: gore
-      POSTGRES_PASSWORD: test_password
-      POSTGRES_DB: gore_nuble_test
-    tmpfs:
-      - /var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U gore -d gore_nuble_test"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-# networks:
-#   gore_network:
-#     external: true
-#     name: data-gore_default
+networks:
+  gore_network:
+    external: true
+    name: gore_os_gore_net
