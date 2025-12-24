@@ -69,6 +69,7 @@ def lista():
     division_id = request.args.get("division")
     nivel_alerta = request.args.get("nivel_alerta")
     con_problemas = request.args.get("con_problemas")
+    instrumento_id = request.args.get("instrumento")
     busqueda = request.args.get("q", "").strip()
 
     # Query base según permisos
@@ -89,10 +90,24 @@ def lista():
         query = query.filter(Iniciativa.tiene_problemas_abiertos == True)
 
     if busqueda:
-        query = query.filter(
-            Iniciativa.nombre.ilike(f"%{busqueda}%")
-            | Iniciativa.codigo_interno.ilike(f"%{busqueda}%")
-        )
+        # Búsqueda multi-término (AND entre términos, OR entre campos)
+        terms = busqueda.split()
+        for term in terms:
+            term_filter = f"%{term}%"
+            query = query.filter(
+                Iniciativa.nombre.ilike(term_filter)
+                | Iniciativa.descripcion.ilike(term_filter)
+                | Iniciativa.codigo_interno.ilike(term_filter)
+            )
+
+    # Filtro por instrumento
+    if instrumento_id:
+        from uuid import UUID
+
+        try:
+            query = query.filter(Iniciativa.instrumento_id == UUID(instrumento_id))
+        except ValueError:
+            pass
 
     # Ordenar y paginar
     query = query.order_by(
@@ -105,16 +120,21 @@ def lista():
 
     # Datos para filtros
     divisiones = Division.query.order_by(Division.nombre).all()
+    instrumentos = (
+        Instrumento.query.filter_by(activo=True).order_by(Instrumento.nombre).all()
+    )
 
     return render_template(
         "ipr/lista.html",
         iniciativas=paginacion.items,
         paginacion=paginacion,
         divisiones=divisiones,
+        instrumentos=instrumentos,
         filtros={
             "division": division_id,
             "nivel_alerta": nivel_alerta,
             "con_problemas": con_problemas,
+            "instrumento": instrumento_id,
             "q": busqueda,
         },
     )

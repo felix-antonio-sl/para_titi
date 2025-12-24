@@ -25,6 +25,7 @@ services:
     volumes:
       - ./app:/home/app/app
       - ./wsgi.py:/home/app/wsgi.py
+      - ./scripts:/home/app/scripts
       - ./tests:/home/app/tests:ro
     networks:
       - gore_network

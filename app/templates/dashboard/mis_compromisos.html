@@ -1,127 +1,192 @@
-{% extends "base.html" %}
-
-{% block title %}Mis Compromisos - GORE Ñuble{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Mis Compromisos - GORE Ñuble{%
+endblock %} {% block content %}
 <div class="px-4 sm:px-6 lg:px-8">
-    <div class="sm:flex sm:items-center mb-6">
-        <div class="sm:flex-auto">
-            <h1 class="text-2xl font-semibold text-gray-900">Mis Compromisos</h1>
-            <p class="mt-2 text-sm text-gray-700">Lista priorizada de tus tareas pendientes.</p>
-        </div>
+  <div class="sm:flex sm:items-center mb-6">
+    <div class="sm:flex-auto">
+      <h1 class="text-2xl font-semibold text-gray-900">Mis Compromisos</h1>
+      <p class="mt-2 text-sm text-gray-700">
+        Lista priorizada de tus tareas pendientes.
+      </p>
     </div>
+  </div>
 
-    <!-- Resumen -->
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-8">
-        <div class="overflow-hidden rounded-lg bg-red-50 px-4 py-4 border-l-4 border-red-400">
-            <dt class="text-sm font-medium text-red-800">Vencidos</dt>
-            <dd class="mt-1 text-2xl font-semibold text-red-900">{{ stats.vencidos }}</dd>
-        </div>
-        <div class="overflow-hidden rounded-lg bg-yellow-50 px-4 py-4 border-l-4 border-yellow-400">
-            <dt class="text-sm font-medium text-yellow-800">Vencen esta semana</dt>
-            <dd class="mt-1 text-2xl font-semibold text-yellow-900">{{ stats.esta_semana }}</dd>
-        </div>
-        <div class="overflow-hidden rounded-lg bg-blue-50 px-4 py-4 border-l-4 border-blue-400">
-            <dt class="text-sm font-medium text-blue-800">Pendientes</dt>
-            <dd class="mt-1 text-2xl font-semibold text-blue-900">{{ stats.pendientes }}</dd>
-        </div>
-        <div class="overflow-hidden rounded-lg bg-green-50 px-4 py-4 border-l-4 border-green-400">
-            <dt class="text-sm font-medium text-green-800">Completados (mes)</dt>
-            <dd class="mt-1 text-2xl font-semibold text-green-900">{{ stats.completados_mes }}</dd>
-        </div>
+  <!-- Resumen -->
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 mb-8">
+    <div
+      class="overflow-hidden rounded-lg bg-red-50 px-4 py-4 border-l-4 border-red-400"
+    >
+      <dt class="text-sm font-medium text-red-800">Vencidos</dt>
+      <dd class="mt-1 text-2xl font-semibold text-red-900">
+        {{ stats.vencidos }}
+      </dd>
     </div>
+    <div
+      class="overflow-hidden rounded-lg bg-yellow-50 px-4 py-4 border-l-4 border-yellow-400"
+    >
+      <dt class="text-sm font-medium text-yellow-800">Vencen esta semana</dt>
+      <dd class="mt-1 text-2xl font-semibold text-yellow-900">
+        {{ stats.esta_semana }}
+      </dd>
+    </div>
+    <div
+      class="overflow-hidden rounded-lg bg-blue-50 px-4 py-4 border-l-4 border-blue-400"
+    >
+      <dt class="text-sm font-medium text-blue-800">Pendientes</dt>
+      <dd class="mt-1 text-2xl font-semibold text-blue-900">
+        {{ stats.pendientes }}
+      </dd>
+    </div>
+    <div
+      class="overflow-hidden rounded-lg bg-green-50 px-4 py-4 border-l-4 border-green-400"
+    >
+      <dt class="text-sm font-medium text-green-800">Completados (mes)</dt>
+      <dd class="mt-1 text-2xl font-semibold text-green-900">
+        {{ stats.completados_mes }}
+      </dd>
+    </div>
+  </div>
 
-    <!-- Vencidos -->
-    {% if vencidos %}
-    <div class="mb-8">
-        <h2 class="text-lg font-medium text-red-900 mb-4 flex items-center">
-            <span class="w-6 h-6 rounded-full bg-red-100 text-red-800 text-sm font-bold mr-2 flex items-center justify-center">!</span>
-            Vencidos
-        </h2>
-        <div class="bg-white shadow rounded-lg divide-y divide-gray-200">
-            {% for c in vencidos %}
-            <div class="p-4 hover:bg-red-50">
-                <div class="flex items-center justify-between">
-                    <a href="{{ url_for('compromisos.ver', id=c.id) }}" class="text-sm font-medium text-gray-900 hover:text-indigo-600">
-                        {{ c.descripcion | truncate(60) }}
-                    </a>
-                    <span class="text-xs text-red-600 font-medium">Hace {{ (today - c.fecha_limite).days }} días</span>
-                </div>
-                {% if c.iniciativa_rel %}
-                <p class="mt-1 text-sm text-gray-500">IPR: {{ c.iniciativa_rel.nombre | truncate(40) }}</p>
-                {% endif %}
-                <div class="mt-2">
-                    <form action="{{ url_for('compromisos.completar', id=c.id) }}" method="POST" class="inline">
-                        <button type="submit" class="text-xs text-green-600 hover:text-green-800 font-medium">
-                            ✓ Marcar completado
-                        </button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
+  <!-- Vencidos -->
+  {% if vencidos %}
+  <div class="mb-8">
+    <h2 class="text-lg font-medium text-red-900 mb-4 flex items-center">
+      <span
+        class="w-6 h-6 rounded-full bg-red-100 text-red-800 text-sm font-bold mr-2 flex items-center justify-center"
+        >!</span
+      >
+      Vencidos
+    </h2>
+    <div class="bg-white shadow rounded-lg divide-y divide-gray-200">
+      {% for c in vencidos %}
+      <div class="p-4 hover:bg-red-50">
+        <div class="flex items-center justify-between">
+          <a
+            href="{{ url_for('compromisos.ver', id=c.id) }}"
+            class="text-sm font-medium text-gray-900 hover:text-indigo-600"
+          >
+            {{ c.descripcion | truncate(60) }}
+          </a>
+          <span class="text-xs text-red-600 font-medium"
+            >Hace {{ (today - c.fecha_limite).days }} días</span
+          >
         </div>
-    </div>
-    {% endif %}
-
-    <!-- Esta semana -->
-    {% if esta_semana %}
-    <div class="mb-8">
-        <h2 class="text-lg font-medium text-yellow-900 mb-4">Vencen esta semana</h2>
-        <div class="bg-white shadow rounded-lg divide-y divide-gray-200">
-            {% for c in esta_semana %}
-            <div class="p-4 hover:bg-yellow-50">
-                <div class="flex items-center justify-between">
-                    <a href="{{ url_for('compromisos.ver', id=c.id) }}" class="text-sm font-medium text-gray-900 hover:text-indigo-600">
-                        {{ c.descripcion | truncate(60) }}
-                    </a>
-                    <span class="text-xs text-yellow-600 font-medium">{{ c.fecha_limite.strftime('%a %d/%m') }}</span>
-                </div>
-                {% if c.iniciativa_rel %}
-                <p class="mt-1 text-sm text-gray-500">IPR: {{ c.iniciativa_rel.nombre | truncate(40) }}</p>
-                {% endif %}
-                <div class="mt-2">
-                    <form action="{{ url_for('compromisos.completar', id=c.id) }}" method="POST" class="inline">
-                        <button type="submit" class="text-xs text-green-600 hover:text-green-800 font-medium">
-                            ✓ Marcar completado
-                        </button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
+        {% if c.iniciativa_rel %}
+        <p class="mt-1 text-sm text-gray-500">
+          IPR: {{ c.iniciativa_rel.nombre | truncate(40) }}
+        </p>
+        {% endif %}
+        <div class="mt-2">
+          <form
+            action="{{ url_for('compromisos.completar', id=c.id) }}"
+            method="POST"
+            class="inline"
+          >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button
+              type="submit"
+              class="text-xs text-green-600 hover:text-green-800 font-medium"
+            >
+              ✓ Marcar completado
+            </button>
+          </form>
         </div>
+      </div>
+      {% endfor %}
     </div>
-    {% endif %}
+  </div>
+  {% endif %}
 
-    <!-- Pendientes -->
-    {% if pendientes %}
-    <div class="mb-8">
-        <h2 class="text-lg font-medium text-gray-900 mb-4">Otros pendientes</h2>
-        <div class="bg-white shadow rounded-lg divide-y divide-gray-200">
-            {% for c in pendientes %}
-            <div class="p-4 hover:bg-gray-50">
-                <div class="flex items-center justify-between">
-                    <a href="{{ url_for('compromisos.ver', id=c.id) }}" class="text-sm font-medium text-gray-900 hover:text-indigo-600">
-                        {{ c.descripcion | truncate(60) }}
-                    </a>
-                    <span class="text-xs text-gray-500">{{ c.fecha_limite.strftime('%d/%m/%Y') }}</span>
-                </div>
-                {% if c.iniciativa_rel %}
-                <p class="mt-1 text-sm text-gray-500">IPR: {{ c.iniciativa_rel.nombre | truncate(40) }}</p>
-                {% endif %}
-            </div>
-            {% endfor %}
+  <!-- Esta semana -->
+  {% if esta_semana %}
+  <div class="mb-8">
+    <h2 class="text-lg font-medium text-yellow-900 mb-4">Vencen esta semana</h2>
+    <div class="bg-white shadow rounded-lg divide-y divide-gray-200">
+      {% for c in esta_semana %}
+      <div class="p-4 hover:bg-yellow-50">
+        <div class="flex items-center justify-between">
+          <a
+            href="{{ url_for('compromisos.ver', id=c.id) }}"
+            class="text-sm font-medium text-gray-900 hover:text-indigo-600"
+          >
+            {{ c.descripcion | truncate(60) }}
+          </a>
+          <span class="text-xs text-yellow-600 font-medium"
+            >{{ c.fecha_limite.strftime('%a %d/%m') }}</span
+          >
         </div>
+        {% if c.iniciativa_rel %}
+        <p class="mt-1 text-sm text-gray-500">
+          IPR: {{ c.iniciativa_rel.nombre | truncate(40) }}
+        </p>
+        {% endif %}
+        <div class="mt-2">
+          <form
+            action="{{ url_for('compromisos.completar', id=c.id) }}"
+            method="POST"
+            class="inline"
+          >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button
+              type="submit"
+              class="text-xs text-green-600 hover:text-green-800 font-medium"
+            >
+              ✓ Marcar completado
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
     </div>
-    {% endif %}
+  </div>
+  {% endif %}
 
-    {% if not vencidos and not esta_semana and not pendientes %}
-    <div class="text-center py-12 bg-white rounded-lg shadow">
-        <svg class="mx-auto h-12 w-12 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">¡Sin compromisos pendientes!</h3>
-        <p class="mt-1 text-sm text-gray-500">Estás al día con todas tus tareas.</p>
+  <!-- Pendientes -->
+  {% if pendientes %}
+  <div class="mb-8">
+    <h2 class="text-lg font-medium text-gray-900 mb-4">Otros pendientes</h2>
+    <div class="bg-white shadow rounded-lg divide-y divide-gray-200">
+      {% for c in pendientes %}
+      <div class="p-4 hover:bg-gray-50">
+        <div class="flex items-center justify-between">
+          <a
+            href="{{ url_for('compromisos.ver', id=c.id) }}"
+            class="text-sm font-medium text-gray-900 hover:text-indigo-600"
+          >
+            {{ c.descripcion | truncate(60) }}
+          </a>
+          <span class="text-xs text-gray-500"
+            >{{ c.fecha_limite.strftime('%d/%m/%Y') }}</span
+          >
+        </div>
+        {% if c.iniciativa_rel %}
+        <p class="mt-1 text-sm text-gray-500">
+          IPR: {{ c.iniciativa_rel.nombre | truncate(40) }}
+        </p>
+        {% endif %}
+      </div>
+      {% endfor %}
     </div>
-    {% endif %}
+  </div>
+  {% endif %} {% if not vencidos and not esta_semana and not pendientes %}
+  <div class="text-center py-12 bg-white rounded-lg shadow">
+    <svg
+      class="mx-auto h-12 w-12 text-green-400"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+    <h3 class="mt-2 text-sm font-medium text-gray-900">
+      ¡Sin compromisos pendientes!
+    </h3>
+    <p class="mt-1 text-sm text-gray-500">Estás al día con todas tus tareas.</p>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

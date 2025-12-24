@@ -1,74 +1,132 @@
-{% extends "base.html" %}
-
-{% block title %}Editar División - Administración{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Editar División - Administración{%
+endblock %} {% block content %}
 <div class="px-4 sm:px-6 lg:px-8">
-    <div class="mx-auto max-w-xl">
-        <!-- Header -->
-        <div class="mb-8">
-            <a href="{{ url_for('admin.divisiones_lista') }}" class="text-sm text-indigo-600 hover:text-indigo-500">
-                ← Volver a divisiones
-            </a>
-            <h1 class="mt-2 text-2xl font-semibold text-gray-900">Editar División</h1>
-            <p class="mt-1 text-sm text-gray-600">{{ division.nombre }}</p>
-        </div>
-
-        <!-- Formulario -->
-        <form method="POST" class="bg-white shadow sm:rounded-lg">
-            <div class="px-4 py-5 sm:p-6">
-                <div class="space-y-6">
-                    <div class="grid grid-cols-6 gap-6">
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="codigo" class="block text-sm font-medium text-gray-700">Código *</label>
-                            <input type="text" name="codigo" id="codigo" required
-                                   value="{{ division.codigo }}"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm uppercase">
-                        </div>
-
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="sigla" class="block text-sm font-medium text-gray-700">Sigla</label>
-                            <input type="text" name="sigla" id="sigla"
-                                   value="{{ division.sigla or '' }}"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm uppercase">
-                        </div>
-
-                        <div class="col-span-6">
-                            <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre Completo *</label>
-                            <input type="text" name="nombre" id="nombre" required
-                                   value="{{ division.nombre }}"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        </div>
-
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="orden_jerarquico" class="block text-sm font-medium text-gray-700">Orden Jerárquico</label>
-                            <input type="number" name="orden_jerarquico" id="orden_jerarquico"
-                                   min="0" value="{{ division.orden_jerarquico or 0 }}"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        </div>
-
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="activo" class="block text-sm font-medium text-gray-700">Estado</label>
-                            <select name="activo" id="activo"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                <option value="1" {% if division.activo %}selected{% endif %}>Activa</option>
-                                <option value="0" {% if not division.activo %}selected{% endif %}>Inactiva</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-gray-50 px-4 py-3 text-right sm:px-6 sm:rounded-b-lg">
-                <a href="{{ url_for('admin.divisiones_lista') }}"
-                   class="mr-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-                    Cancelar
-                </a>
-                <button type="submit"
-                        class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
-                    Guardar Cambios
-                </button>
-            </div>
-        </form>
+  <div class="mx-auto max-w-xl">
+    <!-- Header -->
+    <div class="mb-8">
+      <a
+        href="{{ url_for('admin.divisiones_lista') }}"
+        class="text-sm text-indigo-600 hover:text-indigo-500"
+      >
+        ← Volver a divisiones
+      </a>
+      <h1 class="mt-2 text-2xl font-semibold text-gray-900">Editar División</h1>
+      <p class="mt-1 text-sm text-gray-600">{{ division.nombre }}</p>
     </div>
+
+    <!-- Formulario -->
+    <form method="POST" class="bg-white shadow sm:rounded-lg">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <div class="px-4 py-5 sm:p-6">
+        <div class="space-y-6">
+          <div class="grid grid-cols-6 gap-6">
+            <div class="col-span-6 sm:col-span-3">
+              <label
+                for="codigo"
+                class="block text-sm font-medium text-gray-700"
+                >Código *</label
+              >
+              <input
+                type="text"
+                name="codigo"
+                id="codigo"
+                required
+                value="{{ division.codigo }}"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm uppercase"
+              />
+            </div>
+
+            <div class="col-span-6 sm:col-span-3">
+              <label for="sigla" class="block text-sm font-medium text-gray-700"
+                >Sigla</label
+              >
+              <input
+                type="text"
+                name="sigla"
+                id="sigla"
+                value="{{ division.sigla or '' }}"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm uppercase"
+              />
+            </div>
+
+            <div class="col-span-6">
+              <label
+                for="nombre"
+                class="block text-sm font-medium text-gray-700"
+                >Nombre Completo *</label
+              >
+              <input
+                type="text"
+                name="nombre"
+                id="nombre"
+                required
+                value="{{ division.nombre }}"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              />
+            </div>
+
+            <div class="col-span-6 sm:col-span-3">
+              <label
+                for="orden_jerarquico"
+                class="block text-sm font-medium text-gray-700"
+                >Orden Jerárquico</label
+              >
+              <input
+                type="number"
+                name="orden_jerarquico"
+                id="orden_jerarquico"
+                min="0"
+                value="{{ division.orden_jerarquico or 0 }}"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              />
+            </div>
+
+            <div class="col-span-6 sm:col-span-3">
+              <label
+                for="activo"
+                class="block text-sm font-medium text-gray-700"
+                >Estado</label
+              >
+              <select
+                name="activo"
+                id="activo"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="1" {% if division.activo %}selected{% endif %}>
+                  Activa
+                </option>
+                <option
+                  value="0"
+                  {%
+                  if
+                  not
+                  division.activo
+                  %}selected{%
+                  endif
+                  %}
+                >
+                  Inactiva
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-50 px-4 py-3 text-right sm:px-6 sm:rounded-b-lg">
+        <a
+          href="{{ url_for('admin.divisiones_lista') }}"
+          class="mr-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+        >
+          Cancelar
+        </a>
+        <button
+          type="submit"
+          class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+        >
+          Guardar Cambios
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 {% endblock %}

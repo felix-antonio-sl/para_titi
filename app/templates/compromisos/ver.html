@@ -1,198 +1,246 @@
-{% extends "base.html" %}
-
-{% block title %}Compromiso{% endblock %}
-{% block page_title %}Detalle de Compromiso{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Compromiso{% endblock %} {% block
+page_title %}Detalle de Compromiso{% endblock %} {% block content %}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Info principal -->
-    <div class="lg:col-span-2">
-        <div class="bg-white shadow rounded-lg">
-            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <span class="px-2 py-1 text-xs rounded bg-gray-100 text-gray-700">
-                            {{ compromiso.tipo.nombre if compromiso.tipo else 'Sin tipo' }}
-                        </span>
-                        <span class="{{ compromiso.clase_prioridad }} text-sm font-medium">
-                            {{ compromiso.prioridad }}
-                        </span>
-                    </div>
-                    <div id="estado-compromiso">
-                        {% include 'compromisos/_estado.html' %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="px-4 py-5 sm:px-6">
-                <h2 class="text-lg font-medium text-gray-900 mb-4">{{ compromiso.descripcion }}</h2>
-
-                <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Responsable</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ compromiso.responsable.nombre_completo }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">División</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ compromiso.division.nombre if compromiso.division else '-' }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Fecha Límite</dt>
-                        <dd class="mt-1 text-sm {% if compromiso.esta_vencido() %}text-red-600 font-semibold{% else %}text-gray-900{% endif %}">
-                            {{ compromiso.fecha_limite.strftime('%d/%m/%Y') }}
-                            {% if compromiso.dias_restantes() is not none %}
-                                {% if compromiso.dias_restantes() < 0 %}
-                                    ({{ -compromiso.dias_restantes() }} días vencido)
-                                {% elif compromiso.dias_restantes() == 0 %}
-                                    (vence hoy)
-                                {% else %}
-                                    ({{ compromiso.dias_restantes() }} días restantes)
-                                {% endif %}
-                            {% endif %}
-                        </dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Creado por</dt>
-                        <dd class="mt-1 text-sm text-gray-900">
-                            {{ compromiso.creado_por.nombre_completo if compromiso.creado_por else '-' }}
-                            <span class="text-gray-500">· {{ compromiso.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
-                        </dd>
-                    </div>
-                </dl>
-
-                {% if compromiso.iniciativa %}
-                <div class="mt-4 p-3 bg-indigo-50 rounded-lg">
-                    <dt class="text-sm font-medium text-indigo-700">IPR Vinculada</dt>
-                    <dd class="mt-1">
-                        <a href="{{ url_for('ipr.ficha', id=compromiso.iniciativa.id) }}" class="text-sm text-indigo-600 hover:text-indigo-800">
-                            {{ compromiso.iniciativa.codigo_interno }} — {{ compromiso.iniciativa.nombre[:50] }}...
-                        </a>
-                    </dd>
-                </div>
-                {% endif %}
-
-                {% if compromiso.problema %}
-                <div class="mt-4 p-3 bg-red-50 rounded-lg">
-                    <dt class="text-sm font-medium text-red-700">Problema Asociado</dt>
-                    <dd class="mt-1">
-                        <a href="{{ url_for('problemas.ver', id=compromiso.problema.id) }}" class="text-sm text-red-600 hover:text-red-800">
-                            {{ compromiso.problema.tipo }}: {{ compromiso.problema.descripcion[:50] }}...
-                        </a>
-                    </dd>
-                </div>
-                {% endif %}
-
-                {% if compromiso.observaciones %}
-                <div class="mt-4">
-                    <dt class="text-sm font-medium text-gray-500">Observaciones</dt>
-                    <dd class="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{{ compromiso.observaciones }}</dd>
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Acciones -->
-            <div class="px-4 py-4 sm:px-6 bg-gray-50 border-t border-gray-200 flex flex-wrap gap-3">
-                {% if compromiso.estado == 'PENDIENTE' or compromiso.estado == 'EN_PROGRESO' %}
-                    {% if compromiso.puede_completar(current_user) %}
-                    <form method="POST" action="{{ url_for('compromisos.completar', id=compromiso.id) }}"
-                          hx-post="{{ url_for('compromisos.completar', id=compromiso.id) }}"
-                          hx-target="#estado-compromiso"
-                          hx-swap="outerHTML"
-                          class="inline">
-                        <button type="submit"
-                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700">
-                            ✓ Marcar Completado
-                        </button>
-                    </form>
-                    {% endif %}
-                {% endif %}
-
-                {% if compromiso.estado == 'COMPLETADO' and current_user.puede_verificar_compromisos() %}
-                <form method="POST" action="{{ url_for('compromisos.verificar', id=compromiso.id) }}"
-                      hx-post="{{ url_for('compromisos.verificar', id=compromiso.id) }}"
-                      hx-target="#estado-compromiso"
-                      hx-swap="outerHTML"
-                      class="inline">
-                    <button type="submit"
-                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
-                        ✓ Verificar
-                    </button>
-                </form>
-                <button type="button"
-                        onclick="document.getElementById('modal-rechazar').classList.remove('hidden')"
-                        class="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50">
-                    ✗ Rechazar
-                </button>
-                {% endif %}
-
-                <a href="{{ url_for('compromisos.lista') }}"
-                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                    ← Volver
-                </a>
-            </div>
+  <!-- Info principal -->
+  <div class="lg:col-span-2">
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="px-2 py-1 text-xs rounded bg-gray-100 text-gray-700">
+              {{ compromiso.tipo.nombre if compromiso.tipo else 'Sin tipo' }}
+            </span>
+            <span class="{{ compromiso.clase_prioridad }} text-sm font-medium">
+              {{ compromiso.prioridad }}
+            </span>
+          </div>
+          <div id="estado-compromiso">
+            {% include 'compromisos/_estado.html' %}
+          </div>
         </div>
-    </div>
+      </div>
 
-    <!-- Historial -->
-    <div class="lg:col-span-1">
-        <div class="bg-white shadow rounded-lg">
-            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <h3 class="text-lg font-medium text-gray-900">Historial</h3>
-            </div>
-            <ul class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
-                {% for h in historial %}
-                <li class="px-4 py-3">
-                    <div class="flex items-center gap-2">
-                        {% if h.estado_anterior %}
-                        <span class="text-xs text-gray-500">{{ h.estado_anterior }}</span>
-                        <span class="text-gray-400">→</span>
-                        {% endif %}
-                        <span class="text-xs font-medium text-gray-900">{{ h.estado_nuevo }}</span>
-                    </div>
-                    <p class="text-xs text-gray-500 mt-1">
-                        {{ h.usuario.nombre_completo if h.usuario else 'Sistema' }}
-                        · {{ h.created_at.strftime('%d/%m/%Y %H:%M') }}
-                    </p>
-                    {% if h.comentario %}
-                    <p class="text-xs text-gray-600 mt-1 italic">{{ h.comentario }}</p>
-                    {% endif %}
-                </li>
-                {% else %}
-                <li class="px-4 py-6 text-center text-gray-500 text-sm">
-                    Sin historial
-                </li>
-                {% endfor %}
-            </ul>
+      <div class="px-4 py-5 sm:px-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">
+          {{ compromiso.descripcion }}
+        </h2>
+
+        <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Responsable</dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              {{ compromiso.responsable.nombre_completo }}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">División</dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              {{ compromiso.division.nombre if compromiso.division else '-' }}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Fecha Límite</dt>
+            <dd
+              class="mt-1 text-sm {% if compromiso.esta_vencido() %}text-red-600 font-semibold{% else %}text-gray-900{% endif %}"
+            >
+              {{ compromiso.fecha_limite.strftime('%d/%m/%Y') }} {% if
+              compromiso.dias_restantes() is not none %} {% if
+              compromiso.dias_restantes() < 0 %} ({{
+              -compromiso.dias_restantes() }} días vencido) {% elif
+              compromiso.dias_restantes() == 0 %} (vence hoy) {% else %} ({{
+              compromiso.dias_restantes() }} días restantes) {% endif %} {%
+              endif %}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Creado por</dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              {{ compromiso.creado_por.nombre_completo if compromiso.creado_por
+              else '-' }}
+              <span class="text-gray-500"
+                >· {{ compromiso.created_at.strftime('%d/%m/%Y %H:%M') }}</span
+              >
+            </dd>
+          </div>
+        </dl>
+
+        {% if compromiso.iniciativa %}
+        <div class="mt-4 p-3 bg-indigo-50 rounded-lg">
+          <dt class="text-sm font-medium text-indigo-700">IPR Vinculada</dt>
+          <dd class="mt-1">
+            <a
+              href="{{ url_for('ipr.ficha', id=compromiso.iniciativa.id) }}"
+              class="text-sm text-indigo-600 hover:text-indigo-800"
+            >
+              {{ compromiso.iniciativa.codigo_interno }} — {{
+              compromiso.iniciativa.nombre[:50] }}...
+            </a>
+          </dd>
         </div>
+        {% endif %} {% if compromiso.problema %}
+        <div class="mt-4 p-3 bg-red-50 rounded-lg">
+          <dt class="text-sm font-medium text-red-700">Problema Asociado</dt>
+          <dd class="mt-1">
+            <a
+              href="{{ url_for('problemas.ver', id=compromiso.problema.id) }}"
+              class="text-sm text-red-600 hover:text-red-800"
+            >
+              {{ compromiso.problema.tipo }}: {{
+              compromiso.problema.descripcion[:50] }}...
+            </a>
+          </dd>
+        </div>
+        {% endif %} {% if compromiso.observaciones %}
+        <div class="mt-4">
+          <dt class="text-sm font-medium text-gray-500">Observaciones</dt>
+          <dd class="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
+            {{ compromiso.observaciones }}
+          </dd>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Acciones -->
+      <div
+        class="px-4 py-4 sm:px-6 bg-gray-50 border-t border-gray-200 flex flex-wrap gap-3"
+      >
+        {% if compromiso.estado == 'PENDIENTE' or compromiso.estado ==
+        'EN_PROGRESO' %} {% if compromiso.puede_completar(current_user) %}
+        <form
+          method="POST"
+          action="{{ url_for('compromisos.completar', id=compromiso.id) }}"
+          hx-post="{{ url_for('compromisos.completar', id=compromiso.id) }}"
+          hx-target="#estado-compromiso"
+          hx-swap="outerHTML"
+          class="inline"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button
+            type="submit"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700"
+          >
+            ✓ Marcar Completado
+          </button>
+        </form>
+        {% endif %} {% endif %} {% if compromiso.estado == 'COMPLETADO' and
+        current_user.puede_verificar_compromisos() %}
+        <form
+          method="POST"
+          action="{{ url_for('compromisos.verificar', id=compromiso.id) }}"
+          hx-post="{{ url_for('compromisos.verificar', id=compromiso.id) }}"
+          hx-target="#estado-compromiso"
+          hx-swap="outerHTML"
+          class="inline"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button
+            type="submit"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+          >
+            ✓ Verificar
+          </button>
+        </form>
+        <button
+          type="button"
+          onclick="document.getElementById('modal-rechazar').classList.remove('hidden')"
+          class="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
+        >
+          ✗ Rechazar
+        </button>
+        {% endif %}
+
+        <a
+          href="{{ url_for('compromisos.lista') }}"
+          class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+        >
+          ← Volver
+        </a>
+      </div>
     </div>
+  </div>
+
+  <!-- Historial -->
+  <div class="lg:col-span-1">
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Historial</h3>
+      </div>
+      <ul class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+        {% for h in historial %}
+        <li class="px-4 py-3">
+          <div class="flex items-center gap-2">
+            {% if h.estado_anterior %}
+            <span class="text-xs text-gray-500">{{ h.estado_anterior }}</span>
+            <span class="text-gray-400">→</span>
+            {% endif %}
+            <span class="text-xs font-medium text-gray-900"
+              >{{ h.estado_nuevo }}</span
+            >
+          </div>
+          <p class="text-xs text-gray-500 mt-1">
+            {{ h.usuario.nombre_completo if h.usuario else 'Sistema' }} · {{
+            h.created_at.strftime('%d/%m/%Y %H:%M') }}
+          </p>
+          {% if h.comentario %}
+          <p class="text-xs text-gray-600 mt-1 italic">{{ h.comentario }}</p>
+          {% endif %}
+        </li>
+        {% else %}
+        <li class="px-4 py-6 text-center text-gray-500 text-sm">
+          Sin historial
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
 </div>
 
 <!-- Modal Rechazar -->
 <div id="modal-rechazar" class="hidden fixed inset-0 z-50 overflow-y-auto">
-    <div class="flex items-center justify-center min-h-screen px-4">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75" onclick="document.getElementById('modal-rechazar').classList.add('hidden')"></div>
-        <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Rechazar Compromiso</h3>
-            <form method="POST" action="{{ url_for('compromisos.rechazar', id=compromiso.id) }}">
-                <div class="mb-4">
-                    <label for="motivo" class="block text-sm font-medium text-gray-700">Motivo del rechazo</label>
-                    <textarea name="motivo" id="motivo" rows="3" required
-                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                              placeholder="Explique por qué rechaza este compromiso..."></textarea>
-                </div>
-                <div class="flex justify-end gap-3">
-                    <button type="button"
-                            onclick="document.getElementById('modal-rechazar').classList.add('hidden')"
-                            class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                        Cancelar
-                    </button>
-                    <button type="submit"
-                            class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
-                        Rechazar
-                    </button>
-                </div>
-            </form>
+  <div class="flex items-center justify-center min-h-screen px-4">
+    <div
+      class="fixed inset-0 bg-gray-500 bg-opacity-75"
+      onclick="document.getElementById('modal-rechazar').classList.add('hidden')"
+    ></div>
+    <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">
+        Rechazar Compromiso
+      </h3>
+      <form
+        method="POST"
+        action="{{ url_for('compromisos.rechazar', id=compromiso.id) }}"
+      >
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="mb-4">
+          <label for="motivo" class="block text-sm font-medium text-gray-700"
+            >Motivo del rechazo</label
+          >
+          <textarea
+            name="motivo"
+            id="motivo"
+            rows="3"
+            required
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            placeholder="Explique por qué rechaza este compromiso..."
+          ></textarea>
         </div>
+        <div class="flex justify-end gap-3">
+          <button
+            type="button"
+            onclick="document.getElementById('modal-rechazar').classList.add('hidden')"
+            class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+          >
+            Rechazar
+          </button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
 {% endblock %}

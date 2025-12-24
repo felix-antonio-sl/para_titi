@@ -1,148 +1,245 @@
-{% extends "base.html" %}
-
-{% block title %}Registrar Avance - {{ ipr.nombre }}{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Registrar Avance - {{ ipr.nombre }}{%
+endblock %} {% block content %}
 <div class="px-4 sm:px-6 lg:px-8">
-    <div class="mx-auto max-w-2xl">
-        <!-- Header -->
-        <div class="mb-8">
-            <a href="{{ url_for('ipr.ficha', id=ipr.id) }}" class="text-sm text-indigo-600 hover:text-indigo-500">
-                ← Volver a ficha IPR
-            </a>
-            <h1 class="mt-2 text-2xl font-semibold text-gray-900">Registrar Informe de Avance</h1>
-            <p class="mt-1 text-sm text-gray-600">{{ ipr.nombre }}</p>
-        </div>
-
-        {% if not convenios %}
-        <div class="rounded-md bg-yellow-50 p-4">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <h3 class="text-sm font-medium text-yellow-800">Sin convenios asociados</h3>
-                    <p class="mt-2 text-sm text-yellow-700">
-                        Esta IPR no tiene convenios asociados. Los informes de avance se registran por convenio.
-                    </p>
-                </div>
-            </div>
-        </div>
-        {% else %}
-
-        <!-- Formulario -->
-        <form method="POST" class="space-y-6">
-            <!-- Convenio -->
-            <div class="bg-white shadow sm:rounded-lg">
-                <div class="px-4 py-5 sm:p-6">
-                    <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Datos del Informe</h3>
-                    
-                    <div class="grid grid-cols-6 gap-6">
-                        <div class="col-span-6">
-                            <label for="convenio_id" class="block text-sm font-medium text-gray-700">Convenio *</label>
-                            <select name="convenio_id" id="convenio_id" required
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                {% for conv in convenios %}
-                                <option value="{{ conv.id }}">
-                                    {{ conv.numero_resolucion or 'Sin número' }} - {{ conv.entidad_ejecutora.nombre_display if conv.entidad_ejecutora else 'Sin ejecutor' }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="col-span-6 sm:col-span-2">
-                            <label for="numero" class="block text-sm font-medium text-gray-700">N° Informe *</label>
-                            <input type="number" name="numero" id="numero" required min="1"
-                                   value="{{ siguiente_numero }}"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        </div>
-
-                        <div class="col-span-6 sm:col-span-4">
-                            <label for="tipo" class="block text-sm font-medium text-gray-700">Tipo de Informe</label>
-                            <select name="tipo" id="tipo"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                <option value="MENSUAL">Mensual</option>
-                                <option value="TRIMESTRAL">Trimestral</option>
-                                <option value="SEMESTRAL">Semestral</option>
-                                <option value="FINAL">Final</option>
-                            </select>
-                        </div>
-
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="periodo_desde" class="block text-sm font-medium text-gray-700">Período Desde *</label>
-                            <input type="date" name="periodo_desde" id="periodo_desde" required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        </div>
-
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="periodo_hasta" class="block text-sm font-medium text-gray-700">Período Hasta *</label>
-                            <input type="date" name="periodo_hasta" id="periodo_hasta" required
-                                   value="{{ today }}"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Avances -->
-            <div class="bg-white shadow sm:rounded-lg">
-                <div class="px-4 py-5 sm:p-6">
-                    <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Avances</h3>
-                    
-                    <div class="grid grid-cols-6 gap-6">
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="avance_fisico" class="block text-sm font-medium text-gray-700">Avance Físico (%)</label>
-                            <div class="mt-1 relative rounded-md shadow-sm">
-                                <input type="number" name="avance_fisico" id="avance_fisico"
-                                       min="0" max="100" step="0.1"
-                                       value="{{ ipr.avance_fisico or '' }}"
-                                       class="block w-full rounded-md border-gray-300 pr-12 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                                    <span class="text-gray-500 sm:text-sm">%</span>
-                                </div>
-                            </div>
-                            <p class="mt-1 text-xs text-gray-500">Actual: {{ ipr.avance_fisico or 0 }}%</p>
-                        </div>
-
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="avance_financiero" class="block text-sm font-medium text-gray-700">Avance Financiero (%)</label>
-                            <div class="mt-1 relative rounded-md shadow-sm">
-                                <input type="number" name="avance_financiero" id="avance_financiero"
-                                       min="0" max="100" step="0.1"
-                                       value="{{ ipr.avance_financiero or '' }}"
-                                       class="block w-full rounded-md border-gray-300 pr-12 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                                    <span class="text-gray-500 sm:text-sm">%</span>
-                                </div>
-                            </div>
-                            <p class="mt-1 text-xs text-gray-500">Actual: {{ ipr.avance_financiero or 0 }}%</p>
-                        </div>
-
-                        <div class="col-span-6">
-                            <label for="resumen" class="block text-sm font-medium text-gray-700">Resumen / Observaciones</label>
-                            <textarea name="resumen" id="resumen" rows="4"
-                                      placeholder="Describa los avances del período, hitos alcanzados, observaciones relevantes..."
-                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Botones -->
-            <div class="flex justify-end space-x-3">
-                <a href="{{ url_for('ipr.ficha', id=ipr.id) }}"
-                   class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-                    Cancelar
-                </a>
-                <button type="submit"
-                        class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
-                    Registrar Avance
-                </button>
-            </div>
-        </form>
-        {% endif %}
+  <div class="mx-auto max-w-2xl">
+    <!-- Header -->
+    <div class="mb-8">
+      <a
+        href="{{ url_for('ipr.ficha', id=ipr.id) }}"
+        class="text-sm text-indigo-600 hover:text-indigo-500"
+      >
+        ← Volver a ficha IPR
+      </a>
+      <h1 class="mt-2 text-2xl font-semibold text-gray-900">
+        Registrar Informe de Avance
+      </h1>
+      <p class="mt-1 text-sm text-gray-600">{{ ipr.nombre }}</p>
     </div>
+
+    {% if not convenios %}
+    <div class="rounded-md bg-yellow-50 p-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg
+            class="h-5 w-5 text-yellow-400"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-yellow-800">
+            Sin convenios asociados
+          </h3>
+          <p class="mt-2 text-sm text-yellow-700">
+            Esta IPR no tiene convenios asociados. Los informes de avance se
+            registran por convenio.
+          </p>
+        </div>
+      </div>
+    </div>
+    {% else %}
+
+    <!-- Formulario -->
+    <form method="POST" class="space-y-6">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <!-- Convenio -->
+      <div class="bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">
+            Datos del Informe
+          </h3>
+
+          <div class="grid grid-cols-6 gap-6">
+            <div class="col-span-6">
+              <label
+                for="convenio_id"
+                class="block text-sm font-medium text-gray-700"
+                >Convenio *</label
+              >
+              <select
+                name="convenio_id"
+                id="convenio_id"
+                required
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                {% for conv in convenios %}
+                <option value="{{ conv.id }}">
+                  {{ conv.numero_resolucion or 'Sin número' }} - {{
+                  conv.entidad_ejecutora.nombre_display if
+                  conv.entidad_ejecutora else 'Sin ejecutor' }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-span-6 sm:col-span-2">
+              <label
+                for="numero"
+                class="block text-sm font-medium text-gray-700"
+                >N° Informe *</label
+              >
+              <input
+                type="number"
+                name="numero"
+                id="numero"
+                required
+                min="1"
+                value="{{ siguiente_numero }}"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              />
+            </div>
+
+            <div class="col-span-6 sm:col-span-4">
+              <label for="tipo" class="block text-sm font-medium text-gray-700"
+                >Tipo de Informe</label
+              >
+              <select
+                name="tipo"
+                id="tipo"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="MENSUAL">Mensual</option>
+                <option value="TRIMESTRAL">Trimestral</option>
+                <option value="SEMESTRAL">Semestral</option>
+                <option value="FINAL">Final</option>
+              </select>
+            </div>
+
+            <div class="col-span-6 sm:col-span-3">
+              <label
+                for="periodo_desde"
+                class="block text-sm font-medium text-gray-700"
+                >Período Desde *</label
+              >
+              <input
+                type="date"
+                name="periodo_desde"
+                id="periodo_desde"
+                required
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              />
+            </div>
+
+            <div class="col-span-6 sm:col-span-3">
+              <label
+                for="periodo_hasta"
+                class="block text-sm font-medium text-gray-700"
+                >Período Hasta *</label
+              >
+              <input
+                type="date"
+                name="periodo_hasta"
+                id="periodo_hasta"
+                required
+                value="{{ today }}"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Avances -->
+      <div class="bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">
+            Avances
+          </h3>
+
+          <div class="grid grid-cols-6 gap-6">
+            <div class="col-span-6 sm:col-span-3">
+              <label
+                for="avance_fisico"
+                class="block text-sm font-medium text-gray-700"
+                >Avance Físico (%)</label
+              >
+              <div class="mt-1 relative rounded-md shadow-sm">
+                <input
+                  type="number"
+                  name="avance_fisico"
+                  id="avance_fisico"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value="{{ ipr.avance_fisico or '' }}"
+                  class="block w-full rounded-md border-gray-300 pr-12 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                />
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <span class="text-gray-500 sm:text-sm">%</span>
+                </div>
+              </div>
+              <p class="mt-1 text-xs text-gray-500">
+                Actual: {{ ipr.avance_fisico or 0 }}%
+              </p>
+            </div>
+
+            <div class="col-span-6 sm:col-span-3">
+              <label
+                for="avance_financiero"
+                class="block text-sm font-medium text-gray-700"
+                >Avance Financiero (%)</label
+              >
+              <div class="mt-1 relative rounded-md shadow-sm">
+                <input
+                  type="number"
+                  name="avance_financiero"
+                  id="avance_financiero"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value="{{ ipr.avance_financiero or '' }}"
+                  class="block w-full rounded-md border-gray-300 pr-12 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                />
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <span class="text-gray-500 sm:text-sm">%</span>
+                </div>
+              </div>
+              <p class="mt-1 text-xs text-gray-500">
+                Actual: {{ ipr.avance_financiero or 0 }}%
+              </p>
+            </div>
+
+            <div class="col-span-6">
+              <label
+                for="resumen"
+                class="block text-sm font-medium text-gray-700"
+                >Resumen / Observaciones</label
+              >
+              <textarea
+                name="resumen"
+                id="resumen"
+                rows="4"
+                placeholder="Describa los avances del período, hitos alcanzados, observaciones relevantes..."
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="flex justify-end space-x-3">
+        <a
+          href="{{ url_for('ipr.ficha', id=ipr.id) }}"
+          class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+        >
+          Cancelar
+        </a>
+        <button
+          type="submit"
+          class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+        >
+          Registrar Avance
+        </button>
+      </div>
+    </form>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

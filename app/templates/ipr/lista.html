@@ -18,7 +18,7 @@
 <!-- Filtros -->
 <div class="bg-white shadow rounded-lg mb-6">
     <div class="px-4 py-5 sm:p-6">
-        <form method="GET" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <form method="GET" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
             <!-- Búsqueda -->
             <div class="lg:col-span-2">
                 <label for="q" class="block text-sm font-medium text-gray-700">Buscar</label>
@@ -50,6 +50,20 @@
                     <option value="NORMAL" {% if filtros.nivel_alerta == 'NORMAL' %}selected{% endif %}>Normal</option>
                     <option value="ATENCION" {% if filtros.nivel_alerta == 'ATENCION' %}selected{% endif %}>Atención</option>
                     <option value="CRITICO" {% if filtros.nivel_alerta == 'CRITICO' %}selected{% endif %}>Crítico</option>
+                </select>
+            </div>
+
+            <!-- Instrumento -->
+            <div>
+                <label for="instrumento" class="block text-sm font-medium text-gray-700">Instrumento</label>
+                <select name="instrumento" id="instrumento"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <option value="">Todos</option>
+                    {% for inst in instrumentos %}
+                    <option value="{{ inst.id }}" {% if filtros.instrumento == inst.id|string %}selected{% endif %}>
+                        {{ inst.codigo }} - {{ inst.nombre }}
+                    </option>
+                    {% endfor %}
                 </select>
             </div>
 
@@ -97,9 +111,6 @@
             <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='{{ url_for('ipr.ficha', id=ipr.id) }}';">
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm font-medium text-indigo-600">{{ ipr.codigo_interno }}</div>
-                    {% if ipr.codigo_bip %}
-                    <div class="text-xs text-gray-500">BIP: {{ ipr.codigo_bip }}</div>
-                    {% endif %}
                 </td>
                 <td class="px-6 py-4">
                     <div class="text-sm text-gray-900">{{ ipr.nombre[:50] }}{% if ipr.nombre|length > 50 %}...{% endif %}</div>

@@ -7,6 +7,7 @@
 <div class="max-w-2xl mx-auto">
     <div class="bg-white shadow rounded-lg">
         <form method="POST" class="px-4 py-5 sm:p-6 space-y-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <!-- IPR -->
             <div>
                 <label for="iniciativa_id" class="block text-sm font-medium text-gray-700">IPR Afectada *</label>
