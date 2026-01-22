@@ -132,56 +132,56 @@ erDiagram
 
 ### gore_ejecucion.problema_ipr
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `id` | UUID | PK |
-| `iniciativa_id` | UUID | FK → iniciativa (NOT NULL) |
-| `convenio_id` | UUID | FK → convenio (opcional) |
-| `tipo` | ENUM | TECNICO, FINANCIERO, ADMINISTRATIVO, LEGAL, COORDINACION, EXTERNO |
-| `impacto` | ENUM | BLOQUEA_PAGO, RETRASA_OBRA, RETRASA_CONVENIO, RIESGO_RENDICION, OTRO |
-| `descripcion` | TEXT | Descripción del problema |
-| `estado` | ENUM | ABIERTO, EN_GESTION, RESUELTO, CERRADO_SIN_RESOLVER |
-| `detectado_por_id` | UUID | FK → usuario |
-| `detectado_en` | TIMESTAMP | Fecha de detección |
-| `solucion_propuesta` | TEXT | Solución propuesta |
-| `solucion_aplicada` | TEXT | Solución implementada |
-| `resuelto_por_id` | UUID | FK → usuario |
-| `resuelto_en` | TIMESTAMP | Fecha de resolución |
+| Campo                | Tipo      | Descripción                                                          |
+| -------------------- | --------- | -------------------------------------------------------------------- |
+| `id`                 | UUID      | PK                                                                   |
+| `iniciativa_id`      | UUID      | FK → iniciativa (NOT NULL)                                           |
+| `convenio_id`        | UUID      | FK → convenio (opcional)                                             |
+| `tipo`               | ENUM      | TECNICO, FINANCIERO, ADMINISTRATIVO, LEGAL, COORDINACION, EXTERNO    |
+| `impacto`            | ENUM      | BLOQUEA_PAGO, RETRASA_OBRA, RETRASA_CONVENIO, RIESGO_RENDICION, OTRO |
+| `descripcion`        | TEXT      | Descripción del problema                                             |
+| `estado`             | ENUM      | ABIERTO, EN_GESTION, RESUELTO, CERRADO_SIN_RESOLVER                  |
+| `detectado_por_id`   | UUID      | FK → usuario                                                         |
+| `detectado_en`       | TIMESTAMP | Fecha de detección                                                   |
+| `solucion_propuesta` | TEXT      | Solución propuesta                                                   |
+| `solucion_aplicada`  | TEXT      | Solución implementada                                                |
+| `resuelto_por_id`    | UUID      | FK → usuario                                                         |
+| `resuelto_en`        | TIMESTAMP | Fecha de resolución                                                  |
 
 ### gore_ejecucion.compromiso_operativo
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `id` | UUID | PK |
-| `tipo_id` | UUID | FK → tipo_compromiso_operativo |
-| `descripcion` | TEXT | Descripción de la tarea |
-| `responsable_id` | UUID | FK → usuario (NOT NULL) |
-| `division_id` | UUID | FK → division (derivado automáticamente) |
-| `fecha_limite` | DATE | Fecha límite |
-| `prioridad` | ENUM | BAJA, MEDIA, ALTA, URGENTE |
-| `estado` | ENUM | PENDIENTE, EN_PROGRESO, COMPLETADO, VERIFICADO, CANCELADO |
-| `iniciativa_id` | UUID | FK → iniciativa (derivado) |
-| `convenio_id` | UUID | FK → convenio (derivado) |
-| `cuota_id` | UUID | FK → cuota |
-| `problema_id` | UUID | FK → problema_ipr |
-| `instancia_id` | UUID | FK → instancia_colectiva (reunión origen) |
-| `verificado_por_id` | UUID | FK → usuario |
-| `creado_por_id` | UUID | FK → usuario |
+| Campo               | Tipo | Descripción                                               |
+| ------------------- | ---- | --------------------------------------------------------- |
+| `id`                | UUID | PK                                                        |
+| `tipo_id`           | UUID | FK → tipo_compromiso_operativo                            |
+| `descripcion`       | TEXT | Descripción de la tarea                                   |
+| `responsable_id`    | UUID | FK → usuario (NOT NULL)                                   |
+| `division_id`       | UUID | FK → division (derivado automáticamente)                  |
+| `fecha_limite`      | DATE | Fecha límite                                              |
+| `prioridad`         | ENUM | BAJA, MEDIA, ALTA, URGENTE                                |
+| `estado`            | ENUM | PENDIENTE, EN_PROGRESO, COMPLETADO, VERIFICADO, CANCELADO |
+| `iniciativa_id`     | UUID | FK → iniciativa (derivado)                                |
+| `convenio_id`       | UUID | FK → convenio (derivado)                                  |
+| `cuota_id`          | UUID | FK → cuota                                                |
+| `problema_id`       | UUID | FK → problema_ipr                                         |
+| `instancia_id`      | UUID | FK → instancia_colectiva (reunión origen)                 |
+| `verificado_por_id` | UUID | FK → usuario                                              |
+| `creado_por_id`     | UUID | FK → usuario                                              |
 
 ### gore_ejecucion.alerta_ipr
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `id` | UUID | PK |
-| `iniciativa_id` | UUID | FK → iniciativa (NOT NULL) |
-| `target_tipo` | VARCHAR | INICIATIVA, CONVENIO, CUOTA, COMPROMISO, PROBLEMA |
-| `target_id` | UUID | ID del objeto que genera la alerta |
-| `tipo` | ENUM | OBRA_TERMINADA_SIN_PAGO, CUOTA_VENCIDA, CONVENIO_POR_VENCER, etc. |
-| `nivel` | ENUM | INFO, ATENCION, ALTO, CRITICO |
-| `mensaje` | TEXT | Mensaje descriptivo |
-| `activa` | BOOLEAN | Si la alerta está activa |
-| `atendida_por_id` | UUID | FK → usuario |
-| `atendida_en` | TIMESTAMP | Fecha de atención |
+| Campo             | Tipo      | Descripción                                                       |
+| ----------------- | --------- | ----------------------------------------------------------------- |
+| `id`              | UUID      | PK                                                                |
+| `iniciativa_id`   | UUID      | FK → iniciativa (NOT NULL)                                        |
+| `target_tipo`     | VARCHAR   | INICIATIVA, CONVENIO, CUOTA, COMPROMISO, PROBLEMA                 |
+| `target_id`       | UUID      | ID del objeto que genera la alerta                                |
+| `tipo`            | ENUM      | OBRA_TERMINADA_SIN_PAGO, CUOTA_VENCIDA, CONVENIO_POR_VENCER, etc. |
+| `nivel`           | ENUM      | INFO, ATENCION, ALTO, CRITICO                                     |
+| `mensaje`         | TEXT      | Mensaje descriptivo                                               |
+| `activa`          | BOOLEAN   | Si la alerta está activa                                          |
+| `atendida_por_id` | UUID      | FK → usuario                                                      |
+| `atendida_en`     | TIMESTAMP | Fecha de atención                                                 |
 
 ---
 
@@ -226,12 +226,12 @@ FROM gore_ejecucion.v_compromiso_completo;
 
 ## 4.1 Roles del Sistema (gore_ejecucion.rol_crisis)
 
-| Rol | Descripción | Permisos |
-|-----|-------------|----------|
-| `ADMIN_SISTEMA` | Administrador técnico | Todo |
-| `ADMIN_REGIONAL` | Administrador Regional | Ver todo, crear compromisos, verificar |
-| `JEFE_DIVISION` | Jefe de División | Ver su división, verificar compromisos |
-| `ENCARGADO_OPERATIVO` | Encargado operativo | Ver sus IPR, completar sus compromisos |
+| Rol                   | Descripción            | Permisos                               |
+| --------------------- | ---------------------- | -------------------------------------- |
+| `ADMIN_SISTEMA`       | Administrador técnico  | Todo                                   |
+| `ADMIN_REGIONAL`      | Administrador Regional | Ver todo, crear compromisos, verificar |
+| `JEFE_DIVISION`       | Jefe de División       | Ver su división, verificar compromisos |
+| `ENCARGADO_OPERATIVO` | Encargado operativo    | Ver sus IPR, completar sus compromisos |
 
 ## 4.2 Matriz de Permisos
 
@@ -493,14 +493,14 @@ networks:
 
 ## Análisis de Factores
 
-| Factor | Peso | A (Flask+Jinja) | B (FastAPI+React) | C (Flask+Inertia) | D (Django) |
-|--------|------|-----------------|-------------------|-------------------|------------|
-| Velocidad de desarrollo | 25% | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| Consistencia con `abran` | 20% | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
-| UX/Interactividad | 20% | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
-| Mantenibilidad | 15% | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| Escalabilidad móvil | 10% | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ |
-| Recursos servidor | 10% | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| Factor                   | Peso | A (Flask+Jinja) | B (FastAPI+React) | C (Flask+Inertia) | D (Django) |
+| ------------------------ | ---- | --------------- | ----------------- | ----------------- | ---------- |
+| Velocidad de desarrollo  | 25%  | ⭐⭐⭐⭐⭐           | ⭐⭐⭐               | ⭐⭐⭐⭐              | ⭐⭐⭐⭐       |
+| Consistencia con `abran` | 20%  | ⭐⭐⭐⭐⭐           | ⭐⭐                | ⭐⭐⭐⭐              | ⭐⭐         |
+| UX/Interactividad        | 20%  | ⭐⭐⭐             | ⭐⭐⭐⭐⭐             | ⭐⭐⭐⭐              | ⭐⭐⭐        |
+| Mantenibilidad           | 15%  | ⭐⭐⭐⭐            | ⭐⭐⭐               | ⭐⭐⭐               | ⭐⭐⭐⭐       |
+| Escalabilidad móvil      | 10%  | ⭐⭐              | ⭐⭐⭐⭐⭐             | ⭐⭐⭐               | ⭐⭐         |
+| Recursos servidor        | 10%  | ⭐⭐⭐⭐⭐           | ⭐⭐⭐               | ⭐⭐⭐⭐              | ⭐⭐⭐⭐       |
 
 ## Recomendación: Opción A (Flask + Jinja2 + HTMX)
 

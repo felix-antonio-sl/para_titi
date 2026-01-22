@@ -24,6 +24,12 @@ with app.app_context():
             print(f"Creating schema {schema}...")
             db.session.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
 
+        # Drop conflicting functions
+        print("Dropping conflicting functions...")
+        db.session.execute(
+            text("DROP FUNCTION IF EXISTS gore_ejecucion.fn_division_de_usuario(uuid)")
+        )
+
     print("Creating tables...")
     db.create_all()
 
